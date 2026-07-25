@@ -62,12 +62,22 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
       if (trimmed) {
         // Test directly using Gemini API SDK client-side
         const ai = new GoogleGenAI({ apiKey: trimmed });
-        const res = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: 'Tanggapi dengan satu kata: OK',
-        });
+        let resText = '';
+        try {
+          const res = await ai.models.generateContent({
+            model: 'gemini-3.6-flash',
+            contents: 'Tanggapi dengan satu kata: OK',
+          });
+          resText = res.text || '';
+        } catch {
+          const res = await ai.models.generateContent({
+            model: 'gemini-flash-latest',
+            contents: 'Tanggapi dengan satu kata: OK',
+          });
+          resText = res.text || '';
+        }
 
-        if (res.text) {
+        if (resText) {
           setTestStatus({
             type: 'success',
             message: 'API Key valid! Koneksi ke Google Gemini AI berhasil 100%.',

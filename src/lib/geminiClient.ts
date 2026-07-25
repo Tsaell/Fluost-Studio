@@ -8,6 +8,27 @@ function getClientApiKey(customKey?: string): string | null {
   return null;
 }
 
+async function generateClientWithFallback(ai: GoogleGenAI, contents: any): Promise<string> {
+  const modelsToTry = ['gemini-3.6-flash', 'gemini-flash-latest'];
+  let lastError: any = null;
+
+  for (const model of modelsToTry) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+      });
+      if (response && response.text) {
+        return response.text;
+      }
+    } catch (err: any) {
+      console.warn(`Client model ${model} failed, trying fallback model...`, err?.message || err);
+      lastError = err;
+    }
+  }
+  throw lastError || new Error('Gagal mendapatkan tanggapan dari Gemini AI.');
+}
+
 export async function fetchMusicAI(query: string, customApiKey?: string): Promise<string> {
   // 1. Try server endpoint first
   try {
@@ -24,6 +45,11 @@ export async function fetchMusicAI(query: string, customApiKey?: string): Promis
     if (res.ok && contentType && contentType.includes('application/json')) {
       const data = await res.json();
       if (data.result) return data.result;
+    } else {
+      const data = await res.json().catch(() => null);
+      if (data?.error) {
+        console.warn('Server error returned:', data.error);
+      }
     }
   } catch (err) {
     console.warn('Server endpoint /api/gemini/music unavailable, attempting client-side Gemini fallback:', err);
@@ -60,16 +86,7 @@ Format output (Gunakan format Markdown bergaya rapi, elegan, dan siap dibaca):
 - **Filter Color Tone**: [Misal: Warm Gold, Moody Cyan, Vintage Sepia]
 - **Tips Transisi**: [Panduan potongan visual agar menyatu dengan tempo lagu]`;
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: prompt,
-  });
-
-  if (!response.text) {
-    throw new Error('Gagal mendapatkan tanggapan teks dari Gemini.');
-  }
-
-  return response.text;
+  return await generateClientWithFallback(ai, prompt);
 }
 
 export async function fetchSparkAI(
@@ -151,16 +168,7 @@ Format Output (Gunakan Markdown yang rapi):
     contentsParam = prompt;
   }
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: contentsParam,
-  });
-
-  if (!response.text) {
-    throw new Error('Gagal mendapatkan tanggapan sintesis dari Gemini.');
-  }
-
-  return response.text;
+  return await generateClientWithFallback(ai, contentsParam);
 }
 
 export async function fetchVisualAI(
@@ -227,14 +235,5 @@ Berikan analisis dalam format Markdown berikut:
     },
   };
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: { parts: [imagePart, { text: prompt }] },
-  });
-
-  if (!response.text) {
-    throw new Error('Gagal mendapatkan tanggapan analisis visual dari Gemini.');
-  }
-
-  return response.text;
+  return await generateClientWithFallback(ai, { parts: [imagePart, { text: prompt }] });
 }

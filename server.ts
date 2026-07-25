@@ -38,6 +38,28 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Helper for generating content with fallback model names
+async function generateWithFallback(ai: GoogleGenAI, contents: any) {
+  const modelsToTry = ['gemini-3.6-flash', 'gemini-flash-latest'];
+  let lastError: any = null;
+
+  for (const model of modelsToTry) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents,
+      });
+      if (response && response.text) {
+        return response.text;
+      }
+    } catch (err: any) {
+      console.warn(`Model ${model} failed, trying fallback model...`, err?.message || err);
+      lastError = err;
+    }
+  }
+  throw lastError || new Error('Gagal mendapatkan tanggapan dari Gemini AI.');
+}
+
 // API: ListenList (Music & Lyric Vibes)
 app.post('/api/gemini/music', async (req, res) => {
   try {
@@ -71,12 +93,9 @@ Format output (Gunakan format Markdown bergaya rapi, elegan, dan siap dibaca):
 - **Filter Color Tone**: [Misal: Warm Gold, Moody Cyan, Vintage Sepia]
 - **Tips Transisi**: [Panduan potongan visual agar menyatu dengan tempo lagu]`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
+    const resultText = await generateWithFallback(ai, prompt);
 
-    res.json({ result: response.text });
+    res.json({ result: resultText });
   } catch (error: any) {
     console.error('Error in /api/gemini/music:', error);
     if (error.message === 'GEMINI_API_KEY_MISSING') {
@@ -139,12 +158,9 @@ Format Output (Gunakan Markdown yang rapi):
       contentsParam = prompt;
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: contentsParam,
-    });
+    const resultText = await generateWithFallback(ai, contentsParam);
 
-    res.json({ result: response.text });
+    res.json({ result: resultText });
   } catch (error: any) {
     console.error('Error in /api/gemini/ai-studio:', error);
     if (error.message === 'GEMINI_API_KEY_MISSING') {
@@ -197,12 +213,9 @@ Berikan analisis dalam format Markdown berikut:
       },
     };
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: { parts: [imagePart, { text: prompt }] },
-    });
+    const resultText = await generateWithFallback(ai, { parts: [imagePart, { text: prompt }] });
 
-    res.json({ result: response.text });
+    res.json({ result: resultText });
   } catch (error: any) {
     console.error('Error in /api/gemini/analyze-media:', error);
     if (error.message === 'GEMINI_API_KEY_MISSING') {
