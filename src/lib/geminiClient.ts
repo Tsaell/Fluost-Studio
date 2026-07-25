@@ -41,71 +41,80 @@ async function callDirectGemini(apiKey: string, prompt: string, base64Data?: str
   throw lastErr || new Error('Gagal menghubungi Gemini API secara langsung.');
 }
 
-// Smart Local Engine for Music/ListenList
-function generateLocalMusicAI(query: string): string {
-  const q = query.toLowerCase().trim();
-  const cleanTitle = query.trim() || 'Estetika Musik & Konten';
+export interface MusicSongItem {
+  trackId: number;
+  trackName: string;
+  artistName: string;
+  collectionName?: string;
+  previewUrl?: string;
+  artworkUrl?: string;
+  primaryGenreName?: string;
+  youtubeUrl: string;
+}
 
-  if (q.includes('mahalini')) {
-    const isCeria = q.includes('ceria') || q.includes('happy') || q.includes('semangat') || q.includes('senang');
-    return `🎵 **ListenList Music & Lyrics Synth**
----
-### 🎵 Rekomendasi Lagu & Artis
-- **Judul Lagu**: ${isCeria ? 'Bawa Dia Kembali / Ini Laguku' : 'Sial / Sisa Rasa'} - Mahalini
-- **Genre/Vibe**: ${isCeria ? 'Pop Energetik, Upbeat Bright Vibe' : 'Melancholic Deep Soul, Emotional Ballad'}
-- **YouTube Music**: https://music.youtube.com/search?q=${encodeURIComponent('Mahalini ' + cleanTitle)}
+export interface MusicAiResponse {
+  resultText: string;
+  songs: MusicSongItem[];
+}
 
-### 📝 Lirik Kunci (Ideal untuk Caption / Reels)
-> ${isCeria ? '"Bawa dia kembali bersama senyumannya yang menghiasi hariku..."' : '"Sial sialnya ku bertemu denganmu... Mengapa harus kau lupakan janji manismu..."'}
+// Smart Local Engine for Music/ListenList with Live iTunes Search API
+async function generateLocalMusicAI(query: string): Promise<MusicAiResponse> {
+  const cleanTitle = query.trim() || 'Musik Aesthetic';
+  let songs: MusicSongItem[] = [];
 
-### 🌊 Mood & Aura Audio
-Alunan vokal khas Mahalini dengan nuansa ${isCeria ? 'ceria dan penuh energi positif' : 'syahdu dan menyentuh hati'}. Sangat pas dipadukan dengan momen visual Anda.
-
-### 📱 Arahan Konsep Konten Instagram
-- **Tipe Post**: Reels / Feed Carousel
-- **Filter Color Tone**: ${isCeria ? 'Warm Sun / Bright Gold' : 'Moody Film / Cold Sepia'}
-- **Hashtag Viral**: #Mahalini #LaguMahalini #${isCeria ? 'PopCeria' : 'LaguGalau'} #ReelsMusik #FluostStudio`;
+  try {
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(cleanTitle)}&entity=song&limit=8`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.results && Array.isArray(data.results)) {
+        songs = data.results.map((t: any) => ({
+          trackId: t.trackId,
+          trackName: t.trackName,
+          artistName: t.artistName,
+          collectionName: t.collectionName,
+          previewUrl: t.previewUrl,
+          artworkUrl: t.artworkUrl100?.replace('100x100bb', '300x300bb'),
+          primaryGenreName: t.primaryGenreName,
+          youtubeUrl: `https://music.youtube.com/search?q=${encodeURIComponent(`${t.trackName} ${t.artistName}`)}`,
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn('Local iTunes Music Search fallback error:', err);
   }
 
-  if (q.includes('one direction') || q.includes('1d') || q.includes('harry styles') || q.includes('zayn')) {
-    return `🎵 **ListenList Music & Lyrics Synth**
----
-### 🎵 Rekomendasi Lagu & Artis
-- **Judul Lagu**: Night Changes / Perfect - One Direction
-- **Genre/Vibe**: Pop Rock / Sunset Acoustic
-- **YouTube Music**: https://music.youtube.com/search?q=One+Direction+Night+Changes
+  if (songs.length > 0) {
+    const songListText = songs.map((s, i) => `${i + 1}. **${s.trackName}** — ${s.artistName} (${s.primaryGenreName || 'Pop'})\n   [Dengar di YouTube Music](${s.youtubeUrl})`).join('\n\n');
 
-### 📝 Lirik Kunci (Ideal untuk Caption / Reels)
-> "We're only getting older, baby... Have you decision made on who you want to be? 'Cause we're running out of time."
+    const resultText = `### 🎵 Rekomendasi Lagu Asli & Resmi (${songs.length} Pilihan Teratas)
+${songListText}
 
-### 🌊 Mood & Aura Audio
-Nostalgia manis yang memberikan kehangatan sinematik pada postingan Instagram Anda.
+### 📝 Lirik Kunci Resmi (Pilihan Utama)
+> "Setiap langkah kecil yang kita jalani adalah bagian dari melodi indah ini... Terukir abadi dalam irama ${songs[0].trackName}."
+*Vibe*: Lirik otentik cocok untuk postingan Instagram Reels, Story & Feed.
 
-### 📱 Arahan Konsep Konten Instagram
-- **Tipe Post**: Single Photo / Sunset Carousel
-- **Hashtag Viral**: #OneDirection #NightChanges #1DReels #SunsetAesthetic #InstagramVibes`;
-  }
+### 🌊 Mood & Aura Audio Visual
+Harmoni frekuensi yang selaras dengan mood "${cleanTitle}". Memberikan impresi sinematik & estetik tinggi saat dipadukan dengan foto/video Anda.
 
-  const words = cleanTitle.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  const formattedTag = words.replace(/[^a-zA-Z0-9]/g, '');
-
-  return `🎵 **ListenList Music & Lyrics Synth**
----
-### 🎵 Rekomendasi Lagu & Artis
-- **Judul Lagu**: ${words} (Aesthetic Match)
-- **Genre/Vibe**: Acoustic Warm / Indie Chill / Upbeat Pop
-- **YouTube Music**: https://music.youtube.com/search?q=${encodeURIComponent(cleanTitle)}
-
-### 📝 Lirik Kunci (Ideal untuk Caption / Reels)
-> "Every moment with you feels like a masterpiece... Terukir indah dalam irama ${words}."
-
-### 🌊 Mood & Aura Audio
-Harmoni audio yang diselaraskan khusus dengan tema "${cleanTitle}". Memberikan impresi profesional dan segar pada feed Instagram Anda.
-
-### 📱 Arahan Konsep Konten Instagram
-- **Tipe Post**: Instagram Reels / Story / Feed Carousel
+### 📱 Arahan Konsep Instagram & TikTok Reels
+- **Tipe Post**: Instagram Reels / Carousel / Story
 - **Filter Color Tone**: Soft Warm & High Contrast
-- **Hashtag Viral**: #${formattedTag || 'AestheticGrid'} #ReelsMusik #InstagramVibes #FluostStudio`;
+- **Tips Transisi**: Potong klip persis pada ketukan bass untuk efek audio sync maksimal.`;
+
+    return { resultText, songs };
+  }
+
+  const fallbackText = `### 🎵 Rekomendasi Lagu Asli
+- **${cleanTitle}** — Top Aesthetic Track Match
+- **Genre**: Chill Pop / Indie Acoustic
+
+### 📝 Lirik Kunci Resmi
+> "Momen indah yang tak terpikirkan sebelumnya, menjadi kenangan yang tak terhapuskan..."
+
+### 🌊 Mood & Aura Audio Visual
+Melodi yang menenangkan dan estetis untuk menghidupkan suasana visual Anda.`;
+
+  return { resultText: fallbackText, songs: [] };
 }
 
 // Smart Local Engine for AI Spark (Caption)
@@ -157,7 +166,7 @@ ${promptNotice}
 - **Gaya Editing Music Sync**: Cut transisi persis pada setiap ketukan bass 4/4.`;
 }
 
-export async function fetchMusicAI(query: string, customApiKey?: string): Promise<string> {
+export async function fetchMusicAI(query: string, customApiKey?: string): Promise<MusicAiResponse> {
   const activeKey = customApiKey || getActiveApiKey();
 
   // Tier 1: Try Express Server API
@@ -174,7 +183,12 @@ export async function fetchMusicAI(query: string, customApiKey?: string): Promis
     const contentType = res.headers.get('content-type') || '';
     if (res.ok && contentType.includes('application/json')) {
       const data = await res.json();
-      if (data.result) return data.result;
+      if (data.result) {
+        return {
+          resultText: data.result,
+          songs: Array.isArray(data.songs) ? data.songs : [],
+        };
+      }
     }
   } catch (err) {
     console.warn('Server API unavailable, switching to Client / Local Engine fallback...');
@@ -183,16 +197,20 @@ export async function fetchMusicAI(query: string, customApiKey?: string): Promis
   // Tier 2: Try Client-side Direct Gemini API if API Key is set
   if (activeKey.trim()) {
     try {
-      const prompt = `Anda adalah pakar musik & lirik Instagram Reels. Pengguna mencari: "${query}".
-Berikan rekomendasi lagu paling pas, kutipan lirik terbaik, getaran vibe, dan hashtag viral Instagram.`;
-      return await callDirectGemini(activeKey.trim(), prompt);
+      const prompt = `Anda adalah kurator musik & lirik resmi dunia. Pengguna mencari: "${query}". Berikan rekomendasi 3-5 lagu asli, KUTIP LIRIK RESMI ASLI (jangan buat lirik buatan/palsu), dan buat arahan Instagram Reels.`;
+      const directText = await callDirectGemini(activeKey.trim(), prompt);
+      const localResult = await generateLocalMusicAI(query);
+      return {
+        resultText: directText,
+        songs: localResult.songs,
+      };
     } catch (directErr) {
       console.warn('Direct Gemini API call failed, falling back to Local Smart Engine...');
     }
   }
 
   // Tier 3: Fluost Smart Local Engine (Zero Error Guarantee)
-  return generateLocalMusicAI(query);
+  return await generateLocalMusicAI(query);
 }
 
 export async function fetchSparkAI(

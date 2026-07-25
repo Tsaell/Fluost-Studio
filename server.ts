@@ -60,7 +60,7 @@ async function generateWithFallback(ai: GoogleGenAI, contents: any) {
   throw lastError || new Error('Gagal mendapatkan tanggapan dari Gemini AI.');
 }
 
-// API: ListenList (Music & Lyric Vibes)
+// API: ListenList (Music & Lyric Vibes with Real iTunes/YouTube Music Catalog)
 app.post('/api/gemini/music', async (req, res) => {
   try {
     const { query } = req.body;
@@ -71,36 +71,84 @@ app.post('/api/gemini/music', async (req, res) => {
     const customKey = req.headers['x-custom-api-key'];
     const ai = getGenAIClient(customKey);
 
-    const prompt = `Anda adalah kurator musik & konsep visualFluost AI untuk Instagram.
-Tema visual/mood dari user: "${query}".
+    // Fetch real tracks from global music catalog (iTunes API)
+    let realTracks: Array<{
+      trackId: number;
+      trackName: string;
+      artistName: string;
+      collectionName?: string;
+      previewUrl?: string;
+      artworkUrl?: string;
+      primaryGenreName?: string;
+      youtubeUrl: string;
+    }> = [];
 
-Tugas Anda:
-Berikan rekomendasi lagu, lirik, mood audio, dan arahan konten Instagram yang sangat estetik dan menarik.
+    try {
+      const itunesRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=10`);
+      if (itunesRes.ok) {
+        const itunesData = await itunesRes.json();
+        if (itunesData.results && Array.isArray(itunesData.results)) {
+          realTracks = itunesData.results.map((t: any) => ({
+            trackId: t.trackId,
+            trackName: t.trackName,
+            artistName: t.artistName,
+            collectionName: t.collectionName,
+            previewUrl: t.previewUrl,
+            artworkUrl: t.artworkUrl100?.replace('100x100bb', '300x300bb'),
+            primaryGenreName: t.primaryGenreName,
+            youtubeUrl: `https://music.youtube.com/search?q=${encodeURIComponent(`${t.trackName} ${t.artistName}`)}`,
+          }));
+        }
+      }
+    } catch (searchErr) {
+      console.warn('Live iTunes Music catalog search failed, using Gemini direct search:', searchErr);
+    }
 
-Format output (Gunakan format Markdown bergaya rapi, elegan, dan siap dibaca):
-### 🎵 Rekomendasi Lagu & Artis
-- **Judul Lagu**: [Judul] - [Artis]
-- **Genre/Vibe**: [Misal: Lofi Chill / Cinematic Classical / Indie Synth / Pop Warm]
+    const catalogSummary = realTracks.length > 0
+      ? realTracks.slice(0, 5).map((t, i) => `${i + 1}. "${t.trackName}" oleh ${t.artistName} (Genre: ${t.primaryGenreName || 'Pop'})`).join('\n')
+      : 'Gunakan pengetahuan luas Anda mengenai katalog lagu dunia populer (Indonesia, Western, K-Pop, Anime, Tiktok Trends).';
 
-### 📝 Lirik Kunci (Ideal untuk Caption / Reels)
-> "[Kutipan lirik paling berkesan dan puitis dalam bahasa asli / terjemahan Indonesia]"
+    const prompt = `Anda adalah Master Kurator Musik & Aesthetics Specialist Fluost Studio untuk Instagram & TikTok.
+Tema/Query Pencarian User: "${query}".
 
-### 🌊 Mood & Aura Audio
-[Penjelasan singkat mengenai frekuensi dan emosi audio ini saat dipadukan dengan foto/video]
+Berikut adalah hasil pencarian lagu ASLI dari katalog musik resmi dunia:
+${catalogSummary}
 
-### 📱 Arahan Konsep Konten Instagram
+INSTRUKSI KRUSIAL:
+1. PILIH 3-5 LAGU ASLI & RESMI yang paling cocok dengan mood "${query}".
+2. KUTIP LIRIK ASLI DAN RESMI dari lagu-lagu tersebut. SANGAT DILARANG MEMBUAT LIRIK PALSU ATAU REKAYASA SENDIRI.
+3. Berikan kutipan lirik asli beserta terjemahan/pembedahan maknanya.
+
+Format output (Gunakan Markdown rapi dengan emoji):
+### 🎵 Rekomendasi 3-5 Lagu Asli & Resmi
+[Sebutkan judul lagu asli, penyanyi/band asli, dan genre/mood dari masing-masing lagu secara mendalam]
+
+### 📝 Lirik Kunci Resmi (Ideal untuk Caption / Reels)
+> "[Kutipan lirik resmi 1 - Bahasa Asli]"
+*Arti/Vibe*: [Penjelasan makna]
+
+> "[Kutipan lirik resmi 2 - Bahasa Asli]"
+*Arti/Vibe*: [Penjelasan makna]
+
+### 🌊 Mood & Aura Audio Visual
+[Penjelasan emosi frekuensi suara, instrumen, dan kesesuaian dengan foto/video]
+
+### 📱 Arahan Konsep Instagram & TikTok Reels
 - **Tipe Post**: [Grid Carousel / Reels / Single Photo]
-- **Filter Color Tone**: [Misal: Warm Gold, Moody Cyan, Vintage Sepia]
-- **Tips Transisi**: [Panduan potongan visual agar menyatu dengan tempo lagu]`;
+- **Filter Color Tone**: [Misal: Warm Sun, Moody Film, Cyberpunk Teal]
+- **Panduan Cuts & Transisi**: [Tips memotong klip sesuai beat lagu]`;
 
     const resultText = await generateWithFallback(ai, prompt);
 
-    res.json({ result: resultText });
+    res.json({ 
+      result: resultText,
+      songs: realTracks.slice(0, 6)
+    });
   } catch (error: any) {
     console.error('Error in /api/gemini/music:', error);
     if (error.message === 'GEMINI_API_KEY_MISSING') {
       return res.status(401).json({
-        error: 'API Key Gemini tidak ditemukan. AI Studio akan menyuntikkan key secara otomatis atau masukkan API key manual di menu Pengaturan API.',
+        error: 'API Key Gemini tidak ditemukan. Masukkan API key manual di menu Pengaturan API.',
       });
     }
     res.status(500).json({ error: error.message || 'Gagal memproses permintaan audio.' });

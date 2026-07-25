@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Headphones, Radio, Sparkles, Disc, Music, AlertTriangle, Upload, Image as ImageIcon, Video, Youtube, X } from 'lucide-react';
+import { Headphones, Radio, Sparkles, Disc, Music, AlertTriangle, Upload, Image as ImageIcon, Video, Youtube, X, Play, Pause, ExternalLink } from 'lucide-react';
 import { ThemeLoader } from './ThemeLoader';
-import { fetchMusicAI } from '../lib/geminiClient';
+import { fetchMusicAI, MusicSongItem } from '../lib/geminiClient';
 
 interface ListenListProps {
   onShowModal: (title: string, body: string) => void;
@@ -13,11 +13,36 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resultText, setResultText] = useState<string | null>(null);
+  const [songList, setSongList] = useState<MusicSongItem[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Audio Preview State
+  const [playingTrackId, setPlayingTrackId] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Custom Media Upload State (For users who prefer uploading photo/video instead of typing)
   const [uploadedMedia, setUploadedMedia] = useState<{ url: string; type: 'image' | 'video'; name: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleAudioPreview = (trackId: number, previewUrl?: string) => {
+    if (!previewUrl) return;
+
+    if (playingTrackId === trackId) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setPlayingTrackId(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const newAudio = new Audio(previewUrl);
+      audioRef.current = newAudio;
+      newAudio.play().catch(err => console.warn('Audio play blocked:', err));
+      newAudio.onended = () => setPlayingTrackId(null);
+      setPlayingTrackId(trackId);
+    }
+  };
 
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,10 +76,16 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
     setIsLoading(true);
     setErrorMessage(null);
     setResultText(null);
+    setSongList([]);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    setPlayingTrackId(null);
 
     try {
-      const result = await fetchMusicAI(finalQuery);
-      setResultText(result);
+      const res = await fetchMusicAI(finalQuery);
+      setResultText(res.resultText);
+      setSongList(res.songs || []);
     } catch (err: any) {
       console.error(err);
       setErrorMessage(String(err?.message || err || 'Gagal memproses deteksi audio.'));
@@ -74,7 +105,7 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
         <div className="text-center space-y-3">
           <span className="ice-badge bg-white/10 inline-flex items-center gap-1.5">
             <Radio className="w-3.5 h-3.5 text-[var(--fluid-2)] animate-pulse" />
-            ListenList Audio AI Engine
+            ListenList Audio AI & Unlimited Song Catalog
           </span>
 
           <h2 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[var(--fluid-1)] via-[var(--fluid-2)] to-[var(--fluid-3)]">
@@ -82,7 +113,7 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
           </h2>
 
           <p className="text-xs md:text-base font-medium opacity-80 max-w-2xl mx-auto leading-relaxed">
-            Deskripsikan postingan atau unggah foto/video Anda. Fluost akan mencarikan lirik paling relevan, getaran audio (vibes), dan rekomendasi YouTube Music.
+            Ketik nama lagu, penyanyi, genre, mood, atau unggah foto/video. Fluost menghubungkan katalog musik global YouTube Music & iTunes dengan lirik resmi otentik.
           </p>
         </div>
 
@@ -96,7 +127,7 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchMusic()}
-                placeholder="Ketik mood visual... atau unggah foto/video di samping jika malas mengetik"
+                placeholder="Misal: Sheila On 7, Mahalini, Taylor Swift, lagu galau hujan, mood sunset, dll..."
                 className="fluost-input w-full pl-12 pr-4 py-4 text-sm md:text-base font-bold shadow-lg"
               />
             </div>
@@ -126,11 +157,11 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
             >
               {isLoading ? (
                 <>
-                  <Radio className="w-5 h-5 animate-spin" /> Memindai Audio...
+                  <Radio className="w-5 h-5 animate-spin" /> Memindai Katalog...
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-5 h-5" /> Deteksi Audio & Lirik
+                  <Sparkles className="w-5 h-5" /> Cari Musik & Lirik
                 </>
               )}
             </button>
@@ -162,10 +193,10 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
         </div>
 
         {/* Output Container */}
-        <div className="mt-8">
+        <div className="mt-8 space-y-6">
           {isLoading && (
             <div className="text-center py-12 border border-white/10 rounded-3xl bg-black/10 backdrop-blur-md">
-              <ThemeLoader text="Menganalisis frekuensi audio via Gemini AI..." size="lg" />
+              <ThemeLoader text="Menghubungkan katalog YouTube Music & menyintesis lirik resmi..." size="lg" />
             </div>
           )}
 
@@ -188,62 +219,157 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
             </div>
           )}
 
-          {!isLoading && !errorMessage && resultText && (
+          {!isLoading && !errorMessage && (songList.length > 0 || resultText) && (
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-[var(--card-bg)] p-6 md:p-8 rounded-[2rem] border border-[var(--ice-border)] shadow-xl relative overflow-hidden backdrop-blur-xl space-y-6"
+              className="space-y-6"
             >
-              <div className="fluost-sand-corner"></div>
-              
-              {/* YouTube Music Direct Listen & Lyrics Shortcuts */}
-              <div className="p-4 rounded-2xl bg-red-600/10 border border-red-500/30 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-red-500 font-bold text-xs sm:text-sm">
-                  <Youtube className="w-5 h-5 shrink-0" />
-                  <span>Dengar Lagu Lengkap & Lirik di YouTube Music</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={`https://music.youtube.com/search?q=${encodeURIComponent(query || 'Lagu populer Instagram')}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md"
-                  >
-                    <Youtube className="w-4 h-4" /> Buka YouTube Music
-                  </a>
-                  <a
-                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent((query || 'Lagu') + ' lirik video')}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3 py-1.5 rounded-xl bg-[var(--ice-bg)] hover:border-red-500 text-xs font-bold flex items-center gap-1.5 border border-[var(--ice-border)] transition-all"
-                  >
-                    <Music className="w-3.5 h-3.5 text-red-400" /> Lirik Video
-                  </a>
-                </div>
-              </div>
+              {/* Song List Cards Grid */}
+              {songList.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm sm:text-base font-black flex items-center gap-2">
+                      <Music className="w-4 h-4 text-[var(--fluid-2)]" />
+                      <span>Katalog Lagu Resmi Ditemukan ({songList.length})</span>
+                    </h3>
+                    <a
+                      href={`https://music.youtube.com/search?q=${encodeURIComponent(query || 'Lagu populer')}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-bold text-red-500 hover:underline flex items-center gap-1"
+                    >
+                      <Youtube className="w-4 h-4" /> Buka Selengkapnya di YouTube Music
+                    </a>
+                  </div>
 
-              <div className="relative z-10 prose prose-invert max-w-none text-xs md:text-sm font-medium leading-relaxed">
-                <div className="flex items-center gap-2 text-[var(--fluid-2)] text-lg font-black mb-4 pb-2 border-b border-white/10">
-                  <Music className="w-5 h-5" /> Hasil Sintesis Audio
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {songList.map((song) => (
+                      <div
+                        key={song.trackId}
+                        className="p-3.5 rounded-2xl bg-[var(--card-bg)] border border-[var(--ice-border)] shadow-md hover:border-[#3D5AFE] transition-all flex items-center justify-between gap-3 group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {song.artworkUrl ? (
+                            <img
+                              src={song.artworkUrl}
+                              alt={song.trackName}
+                              className="w-12 h-12 rounded-xl object-cover shrink-0 shadow-sm border border-white/20"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
+                              <Music className="w-6 h-6 text-white" />
+                            </div>
+                          )}
 
-                <div 
-                  className="whitespace-pre-wrap space-y-2"
-                  dangerouslySetInnerHTML={{
-                    __html: String(resultText || '')
-                      .replace(/### (.*?)\n/g, '<h3 class="text-base font-bold text-[var(--fluid-2)] mt-4 mb-2">$1</h3>')
-                      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[var(--fluid-1)] font-bold">$1</strong>')
-                  }}
-                />
-              </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-xs sm:text-sm truncate leading-tight group-hover:text-[var(--fluid-2)] transition-colors">
+                              {song.trackName}
+                            </p>
+                            <p className="text-[11px] font-medium opacity-75 truncate mt-0.5">
+                              {song.artistName}
+                            </p>
+                            {song.primaryGenreName && (
+                              <span className="inline-block mt-1 text-[9px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/20">
+                                {song.primaryGenreName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {song.previewUrl && (
+                            <button
+                              type="button"
+                              onClick={() => toggleAudioPreview(song.trackId, song.previewUrl)}
+                              className={`p-2.5 rounded-xl transition-all font-bold text-xs flex items-center justify-center ${
+                                playingTrackId === song.trackId
+                                  ? 'bg-emerald-500 text-white shadow-lg animate-pulse'
+                                  : 'bg-[var(--ice-bg)] border border-[var(--ice-border)] hover:bg-[#3D5AFE] hover:text-white'
+                              }`}
+                              title={playingTrackId === song.trackId ? 'Hentikan Preview' : 'Putar Sample Preview Audio 30 Detik'}
+                            >
+                              {playingTrackId === song.trackId ? (
+                                <Pause className="w-4 h-4" />
+                              ) : (
+                                <Play className="w-4 h-4" />
+                              )}
+                            </button>
+                          )}
+
+                          <a
+                            href={song.youtubeUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-2.5 rounded-xl bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white transition-all font-bold text-xs flex items-center justify-center border border-red-500/20"
+                            title="Buka di YouTube Music"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Gemini AI Detailed Lyrics & Vibe Analysis Card */}
+              {resultText && (
+                <div className="bg-[var(--card-bg)] p-6 md:p-8 rounded-[2rem] border border-[var(--ice-border)] shadow-xl relative overflow-hidden backdrop-blur-xl space-y-6">
+                  <div className="fluost-sand-corner"></div>
+                  
+                  {/* YouTube Music Direct Listen & Lyrics Shortcuts */}
+                  <div className="p-4 rounded-2xl bg-red-600/10 border border-red-500/30 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-red-500 font-bold text-xs sm:text-sm">
+                      <Youtube className="w-5 h-5 shrink-0" />
+                      <span>Dengar Lagu Lengkap & Lirik di YouTube Music</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`https://music.youtube.com/search?q=${encodeURIComponent(query || 'Lagu populer Instagram')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md"
+                      >
+                        <Youtube className="w-4 h-4" /> Buka YouTube Music
+                      </a>
+                      <a
+                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent((query || 'Lagu') + ' lirik video')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-xl bg-[var(--ice-bg)] hover:border-red-500 text-xs font-bold flex items-center gap-1.5 border border-[var(--ice-border)] transition-all"
+                      >
+                        <Music className="w-3.5 h-3.5 text-red-400" /> Lirik Video
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 prose prose-invert max-w-none text-xs md:text-sm font-medium leading-relaxed">
+                    <div className="flex items-center gap-2 text-[var(--fluid-2)] text-lg font-black mb-4 pb-2 border-b border-white/10">
+                      <Sparkles className="w-5 h-5" /> Analisis Lirik Resmi & Vibe Audio
+                    </div>
+
+                    <div 
+                      className="whitespace-pre-wrap space-y-2"
+                      dangerouslySetInnerHTML={{
+                        __html: String(resultText || '')
+                          .replace(/### (.*?)\n/g, '<h3 class="text-base font-bold text-[var(--fluid-2)] mt-4 mb-2">$1</h3>')
+                          .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[var(--fluid-1)] font-bold">$1</strong>')
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
 
-          {!isLoading && !resultText && !errorMessage && (
+          {!isLoading && !resultText && songList.length === 0 && !errorMessage && (
             <div className="text-center py-16 border-2 border-dashed border-[var(--ice-border)] rounded-3xl bg-black/5">
               <Disc className="w-16 h-16 text-[var(--fluid-2)] opacity-40 mx-auto mb-3 animate-spin" style={{ animationDuration: '20s' }} />
-              <p className="font-bold text-sm tracking-wide">Pencari Audio Siap Dijalankan</p>
-              <p className="text-xs opacity-70 mt-1">Masukkan deskripsi di atas untuk menemukan musik terbaik untuk Instagram Anda.</p>
+              <p className="font-bold text-sm tracking-wide">Pencari Audio & Katalog Musik Siap Dijalankan</p>
+              <p className="text-xs opacity-70 mt-1 max-w-md mx-auto">
+                Ketik penyanyi favorit Anda (Sheila On 7, Mahalini, Taylor Swift, dll.) atau deskripsi mood untuk menemukan ribuan lagu & lirik resmi YouTube Music.
+              </p>
             </div>
           )}
         </div>
@@ -252,3 +378,4 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
     </div>
   );
 };
+
