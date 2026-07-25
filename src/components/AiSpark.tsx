@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Wand2, Dna, AlertTriangle, Copy, Check, Upload, Image, Film, X, FileCheck } from 'lucide-react';
 import { ThemeLoader } from './ThemeLoader';
+import { fetchSparkAI } from '../lib/geminiClient';
 
 interface AiSparkProps {
   onShowModal: (title: string, body: string) => void;
@@ -84,46 +85,15 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey }) =
     setResultText(null);
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (customApiKey) {
-        headers['x-custom-api-key'] = customApiKey;
-      }
-
-      const bodyPayload: any = {
-        topic: topic.trim(),
+      const result = await fetchSparkAI(
+        topic.trim(),
         style,
-      };
-
-      if (media) {
-        bodyPayload.base64Data = media.base64Data;
-        bodyPayload.mimeType = media.mimeType;
-        bodyPayload.fileName = media.fileName;
-      }
-
-      const res = await fetch('/api/gemini/ai-studio', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(bodyPayload),
-      });
-
-      const contentType = res.headers.get('content-type');
-      let data: any = {};
-      if (contentType && contentType.includes('application/json')) {
-        data = await res.json();
-      } else {
-        const text = await res.text();
-        throw new Error(
-          `Server memberikan tanggapan berupa web/HTML bukan JSON (${res.status}). Pastikan backend server Express berjalan dan terhubung.`
-        );
-      }
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Gagal mensintesis konten.');
-      }
-
-      setResultText(data.result);
+        media?.base64Data,
+        media?.mimeType,
+        media?.fileName,
+        customApiKey
+      );
+      setResultText(result);
     } catch (err: any) {
       console.error(err);
       setErrorMessage(err.message || 'Gagal memproses AI Studio.');

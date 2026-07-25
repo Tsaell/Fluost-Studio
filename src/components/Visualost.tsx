@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Eye, Upload, Palette, Microscope, AlertTriangle } from 'lucide-react';
 import { ThemeLoader } from './ThemeLoader';
+import { fetchVisualAI } from '../lib/geminiClient';
 
 interface VisualostProps {
   onShowModal: (title: string, body: string) => void;
@@ -50,35 +51,8 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, customApiKey 
     setResultText(null);
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (customApiKey) {
-        headers['x-custom-api-key'] = customApiKey;
-      }
-
-      const res = await fetch('/api/gemini/analyze-media', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ base64Data, mimeType }),
-      });
-
-      const contentType = res.headers.get('content-type');
-      let data: any = {};
-      if (contentType && contentType.includes('application/json')) {
-        data = await res.json();
-      } else {
-        const text = await res.text();
-        throw new Error(
-          `Server memberikan tanggapan berupa web/HTML bukan JSON (${res.status}). Pastikan backend server Express berjalan.`
-        );
-      }
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Gagal menganalisis visual.');
-      }
-
-      setResultText(data.result);
+      const result = await fetchVisualAI(base64Data, mimeType, customApiKey);
+      setResultText(result);
     } catch (err: any) {
       console.error(err);
       setErrorMessage(err.message || 'Terjadi kesalahan saat pembedahan visual.');

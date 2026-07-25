@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Headphones, Radio, Sparkles, Disc, Music, AlertTriangle, Upload, Image as ImageIcon, Video, Youtube, X } from 'lucide-react';
 import { ThemeLoader } from './ThemeLoader';
+import { fetchMusicAI } from '../lib/geminiClient';
 
 interface ListenListProps {
   onShowModal: (title: string, body: string) => void;
@@ -52,38 +53,11 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, customApiKe
     setResultText(null);
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (customApiKey) {
-        headers['x-custom-api-key'] = customApiKey;
-      }
-
-      const res = await fetch('/api/gemini/music', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ query: finalQuery }),
-      });
-
-      const contentType = res.headers.get('content-type');
-      let data: any = {};
-      if (contentType && contentType.includes('application/json')) {
-        data = await res.json();
-      } else {
-        const text = await res.text();
-        throw new Error(
-          `Server memberikan tanggapan berupa web/HTML bukan JSON (${res.status}). Pastikan backend server Express berjalan.`
-        );
-      }
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Terjadi kesalahan saat memproses deteksi audio.');
-      }
-
-      setResultText(data.result);
+      const result = await fetchMusicAI(finalQuery, customApiKey);
+      setResultText(result);
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || 'Gagal terhubung ke server AI.');
+      setErrorMessage(err.message || 'Gagal memproses deteksi audio.');
     } finally {
       setIsLoading(false);
     }

@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, X, CheckCircle2, Zap } from 'lucide-react';
+import { Sparkles, X, CheckCircle2, Zap, Copy, ExternalLink } from 'lucide-react';
 
 interface NotificationModalProps {
   isOpen: boolean;
   title: string;
   body: string;
+  autoDismiss?: boolean;
+  copyText?: string;
+  externalUrl?: string;
   onClose: () => void;
 }
 
@@ -13,17 +16,29 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   isOpen,
   title,
   body,
+  autoDismiss = true,
+  copyText,
+  externalUrl,
   onClose,
 }) => {
-  // Auto dismiss notification after 6 seconds
+  const [copied, setCopied] = useState(false);
+
+  // Auto dismiss notification after 8 seconds if autoDismiss is true
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && autoDismiss) {
       const timer = setTimeout(() => {
         onClose();
-      }, 6000);
+      }, 8000);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, autoDismiss, onClose]);
+
+  const handleCopy = () => {
+    if (!copyText) return;
+    navigator.clipboard.writeText(copyText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
 
   return (
     <AnimatePresence>
@@ -51,7 +66,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               y: 10,
               scale: 1,
               width: '100%',
-              maxWidth: '440px',
+              maxWidth: '480px',
               borderRadius: '28px',
               opacity: 1,
             }}
@@ -100,24 +115,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
 
                 {/* Animated Wave Indicator & Close Button */}
                 <div className="flex items-center gap-2">
-                  <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/10 dark:bg-white/10 border border-[var(--ice-border)]">
-                    <motion.div
-                      animate={{ height: ['4px', '12px', '4px'] }}
-                      transition={{ duration: 0.8, repeat: Infinity }}
-                      className="w-1 bg-[#38BDF8] rounded-full"
-                    />
-                    <motion.div
-                      animate={{ height: ['12px', '4px', '12px'] }}
-                      transition={{ duration: 0.8, repeat: Infinity, delay: 0.2 }}
-                      className="w-1 bg-[#3D5AFE] rounded-full"
-                    />
-                    <motion.div
-                      animate={{ height: ['6px', '14px', '6px'] }}
-                      transition={{ duration: 0.8, repeat: Infinity, delay: 0.4 }}
-                      className="w-1 bg-emerald-400 rounded-full"
-                    />
-                  </div>
-
                   <button
                     onClick={onClose}
                     className="p-1.5 rounded-full bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 transition-all active:scale-95"
@@ -129,12 +126,38 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               </div>
 
               {/* Notification Message */}
-              <p className="text-xs md:text-sm font-medium leading-relaxed opacity-90">
+              <p className="text-xs md:text-sm font-medium leading-relaxed opacity-90 whitespace-pre-line">
                 {body}
               </p>
 
-              {/* Action Button */}
-              <div className="pt-1 flex items-center justify-between">
+              {/* Optional Actions (e.g. Copy Domain & Firebase Console Link) */}
+              {(copyText || externalUrl) && (
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  {copyText && (
+                    <button
+                      onClick={handleCopy}
+                      className="px-3 py-1.5 rounded-xl bg-[var(--ice-bg)] hover:border-[#3D5AFE] border border-[var(--ice-border)] text-xs font-bold text-[#3D5AFE] flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      {copied ? 'Domain Tersalin!' : `Salin Domain (${copyText})`}
+                    </button>
+                  )}
+                  {externalUrl && (
+                    <a
+                      href={externalUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/30 text-xs font-bold text-orange-500 flex items-center gap-1.5 transition-all active:scale-95"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Firebase Console
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Bottom Bar */}
+              <div className="pt-2 flex items-center justify-between border-t border-white/5">
                 <span className="text-[10px] font-mono opacity-60">
                   Fluost OS • Live System
                 </span>

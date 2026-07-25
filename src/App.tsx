@@ -24,7 +24,14 @@ export default function App() {
 
   // Modal State
   const [isApiModalOpen, setIsApiModalOpen] = useState<boolean>(false);
-  const [notification, setNotification] = useState<{ isOpen: boolean; title: string; body: string }>({
+  const [notification, setNotification] = useState<{
+    isOpen: boolean;
+    title: string;
+    body: string;
+    autoDismiss?: boolean;
+    copyText?: string;
+    externalUrl?: string;
+  }>({
     isOpen: false,
     title: '',
     body: '',
@@ -79,7 +86,27 @@ export default function App() {
         `Selamat datang kembali, ${loggedInUser.displayName || loggedInUser.email}! Integrasi Google Drive, Calendar, Tasks & Cloud telah aktif.`
       );
     } catch (err: any) {
-      showModal('Login Gagal', err.message || 'Gagal melakukan login dengan Google.');
+      const isDomainError = err.message?.includes('belum terdaftar') || err.message?.includes('Authorized Domains');
+      const domain = typeof window !== 'undefined' ? window.location.hostname : 'fluost-studio.vercel.app';
+
+      if (isDomainError) {
+        showModal(
+          'Domain Belum Terdaftar di Firebase',
+          `Domain web saat ini (${domain}) belum terdaftar di Firebase Console.\n\n` +
+          `Cara cepat mengaktifkannya:\n` +
+          `1. Klik tombol "Salin Domain" di bawah ini.\n` +
+          `2. Masuk ke Firebase Console -> Authentication -> Settings -> Authorized Domains.\n` +
+          `3. Klik "Add domain" lalu tempel (paste) domain ${domain}.\n\n` +
+          `Atau Anda dapat tetap menggunakan semua fitur Fluost secara normal dalam Mode Lokal.`,
+          {
+            autoDismiss: false,
+            copyText: domain,
+            externalUrl: 'https://console.firebase.google.com/',
+          }
+        );
+      } else {
+        showModal('Login Gagal', err.message || 'Gagal melakukan login dengan Google.');
+      }
     }
   };
 
@@ -94,11 +121,18 @@ export default function App() {
     }
   };
 
-  const showModal = (title: string, body: string) => {
+  const showModal = (
+    title: string,
+    body: string,
+    options?: { autoDismiss?: boolean; copyText?: string; externalUrl?: string }
+  ) => {
     setNotification({
       isOpen: true,
       title,
       body,
+      autoDismiss: options?.autoDismiss ?? true,
+      copyText: options?.copyText,
+      externalUrl: options?.externalUrl,
     });
   };
 
@@ -170,6 +204,9 @@ export default function App() {
         isOpen={notification.isOpen}
         title={notification.title}
         body={notification.body}
+        autoDismiss={notification.autoDismiss}
+        copyText={notification.copyText}
+        externalUrl={notification.externalUrl}
         onClose={closeModal}
       />
     </div>
