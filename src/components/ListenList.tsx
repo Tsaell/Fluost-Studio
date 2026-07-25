@@ -65,7 +65,16 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, customApiKe
         body: JSON.stringify({ query: finalQuery }),
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get('content-type');
+      let data: any = {};
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        throw new Error(
+          `Server memberikan tanggapan berupa web/HTML bukan JSON (${res.status}). Pastikan backend server Express berjalan.`
+        );
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Terjadi kesalahan saat memproses deteksi audio.');

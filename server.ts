@@ -72,7 +72,7 @@ Format output (Gunakan format Markdown bergaya rapi, elegan, dan siap dibaca):
 - **Tips Transisi**: [Panduan potongan visual agar menyatu dengan tempo lagu]`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     });
 
@@ -140,7 +140,7 @@ Format Output (Gunakan Markdown yang rapi):
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-2.5-flash',
       contents: contentsParam,
     });
 
@@ -198,7 +198,7 @@ Berikan analisis dalam format Markdown berikut:
     };
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-2.5-flash',
       contents: { parts: [imagePart, { text: prompt }] },
     });
 

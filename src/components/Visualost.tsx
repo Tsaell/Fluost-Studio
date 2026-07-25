@@ -63,7 +63,16 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, customApiKey 
         body: JSON.stringify({ base64Data, mimeType }),
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get('content-type');
+      let data: any = {};
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        throw new Error(
+          `Server memberikan tanggapan berupa web/HTML bukan JSON (${res.status}). Pastikan backend server Express berjalan.`
+        );
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Gagal menganalisis visual.');

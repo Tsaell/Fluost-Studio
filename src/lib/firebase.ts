@@ -46,9 +46,21 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
       cachedAccessToken = token;
     }
     return { user: result.user, accessToken: token || '' };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Google Sign-in error:', error);
-    throw error;
+    let readableMsg = error.message || 'Gagal melakukan login dengan Google.';
+    if (error?.code === 'auth/popup-blocked') {
+      readableMsg = 'Pop-up browser diblokir. Harap izinkan pop-up (pop-up blocker) pada browser Anda untuk login Google.';
+    } else if (error?.code === 'auth/unauthorized-domain') {
+      readableMsg = `Domain web saat ini (${window.location.hostname}) belum terdaftar. Tambahkan domain ini di Firebase Console -> Authentication -> Settings -> Authorized Domains.`;
+    } else if (error?.code === 'auth/popup-closed-by-user') {
+      readableMsg = 'Jendela otentikasi Google ditutup sebelum login selesai.';
+    } else if (error?.code === 'auth/cancelled-popup-request') {
+      readableMsg = 'Proses login Google sebelumnya dibatalkan.';
+    } else if (error?.code === 'auth/operation-not-allowed') {
+      readableMsg = 'Metode Google Sign-In belum diaktifkan di Firebase Console. Harap aktifkan di menu Authentication -> Sign-in method.';
+    }
+    throw new Error(readableMsg);
   }
 };
 
