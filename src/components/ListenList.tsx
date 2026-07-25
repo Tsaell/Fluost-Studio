@@ -231,7 +231,7 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, customApiKe
                 <div 
                   className="whitespace-pre-wrap space-y-2"
                   dangerouslySetInnerHTML={{
-                    __html: resultText
+                    __html: String(resultText || '')
                       .replace(/### (.*?)\n/g, '<h3 class="text-base font-bold text-[var(--fluid-2)] mt-4 mb-2">$1</h3>')
                       .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[var(--fluid-1)] font-bold">$1</strong>')
                   }}

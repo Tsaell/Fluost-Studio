@@ -114,7 +114,20 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey, onO
 
   const copyToClipboard = () => {
     if (resultText) {
-      navigator.clipboard.writeText(resultText);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(resultText);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = resultText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.error('Copy failed', err);
+        }
+        document.body.removeChild(textArea);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       onShowModal('Berhasil Disalin', 'Teks caption dan hashtag telah disalin ke clipboard.');
@@ -314,7 +327,7 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey, onO
                 <div className="bg-black/20 p-5 rounded-2xl border border-[var(--ice-border)] overflow-y-auto max-h-[500px] prose prose-invert max-w-none text-xs md:text-sm font-medium leading-relaxed">
                   <div 
                     dangerouslySetInnerHTML={{
-                      __html: resultText
+                      __html: String(resultText || '')
                         .replace(/### (.*?)\n/g, '<h3 class="text-sm font-bold text-[var(--fluid-2)] mt-4 mb-1">$1</h3>')
                         .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[var(--fluid-1)]">$1</strong>')
                         .replace(/\n/g, '<br />')

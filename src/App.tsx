@@ -12,6 +12,8 @@ import { NotificationModal } from './components/NotificationModal';
 import { ThemeBackground } from './components/ThemeBackground';
 import { initAuthListener, googleSignIn, googleSignOut, loadUserDataFromCloud, saveUserDataToCloud } from './lib/firebase';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('grid');
   const [currentTheme, setCurrentTheme] = useState<ThemeMode>('sky');
@@ -181,29 +183,31 @@ export default function App() {
 
       {/* Main Content Viewport */}
       <main className="w-full px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto flex-grow relative z-10">
-        {activeTab === 'grid' && <EnGrid onShowModal={showModal} />}
-        {activeTab === 'music' && (
-          <ListenList
-            onShowModal={showModal}
-            customApiKey={customApiKey}
-            onOpenApiModal={() => setIsApiModalOpen(true)}
-          />
-        )}
-        {activeTab === 'ai' && (
-          <AiSpark
-            onShowModal={showModal}
-            customApiKey={customApiKey}
-            onOpenApiModal={() => setIsApiModalOpen(true)}
-          />
-        )}
-        {activeTab === 'assistant' && (
-          <Visualost
-            onShowModal={showModal}
-            customApiKey={customApiKey}
-            onOpenApiModal={() => setIsApiModalOpen(true)}
-          />
-        )}
-        {activeTab === 'planner' && <Planner onShowModal={showModal} user={user} accessToken={accessToken} />}
+        <ErrorBoundary>
+          {activeTab === 'grid' && <EnGrid onShowModal={showModal} />}
+          {activeTab === 'music' && (
+            <ListenList
+              onShowModal={showModal}
+              customApiKey={customApiKey}
+              onOpenApiModal={() => setIsApiModalOpen(true)}
+            />
+          )}
+          {activeTab === 'ai' && (
+            <AiSpark
+              onShowModal={showModal}
+              customApiKey={customApiKey}
+              onOpenApiModal={() => setIsApiModalOpen(true)}
+            />
+          )}
+          {activeTab === 'assistant' && (
+            <Visualost
+              onShowModal={showModal}
+              customApiKey={customApiKey}
+              onOpenApiModal={() => setIsApiModalOpen(true)}
+            />
+          )}
+          {activeTab === 'planner' && <Planner onShowModal={showModal} user={user} accessToken={accessToken} />}
+        </ErrorBoundary>
       </main>
 
       {/* App Footer */}

@@ -56,34 +56,27 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           {/* Dynamic "FluostNote" Morphing Modal */}
           <motion.div
             initial={{
-              y: -80,
-              scale: 0.6,
-              width: '160px',
-              borderRadius: '9999px',
+              y: -50,
+              scale: 0.9,
               opacity: 0,
             }}
             animate={{
               y: 10,
               scale: 1,
-              width: '100%',
-              maxWidth: '480px',
-              borderRadius: '28px',
               opacity: 1,
             }}
             exit={{
-              y: -100,
-              scale: 0.5,
-              width: '140px',
-              borderRadius: '9999px',
+              y: -20,
+              scale: 0.9,
               opacity: 0,
             }}
             transition={{
               type: 'spring',
-              stiffness: 240,
-              damping: 18,
-              mass: 0.75,
+              stiffness: 300,
+              damping: 25,
+              mass: 0.8,
             }}
-            className="pointer-events-auto bg-[var(--card-bg)] text-[var(--text-main)] border border-[var(--ice-border)] shadow-[0_20px_50px_rgba(0,0,0,0.25),0_0_30px_rgba(61,90,254,0.3)] p-5 md:p-6 relative z-10 overflow-hidden backdrop-blur-2xl"
+            className="w-full max-w-[480px] rounded-[28px] pointer-events-auto bg-[var(--card-bg)] text-[var(--text-main)] border border-[var(--ice-border)] shadow-[0_20px_50px_rgba(0,0,0,0.25),0_0_30px_rgba(61,90,254,0.3)] p-5 md:p-6 relative z-10 overflow-hidden backdrop-blur-2xl"
           >
             {/* Ambient Liquid Flow inside FluostNote */}
             <div className="fluost-fluid-bg opacity-30" />

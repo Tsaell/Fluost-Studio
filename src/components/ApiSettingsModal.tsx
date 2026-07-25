@@ -110,13 +110,21 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[110] flex items-start justify-center pt-10 md:pt-16 px-4 bg-black/75 backdrop-blur-md overflow-y-auto">
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0, y: -20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: -20 }}
-          className="fluost-box p-6 md:p-8 max-w-lg w-full relative my-8"
-        >
+      {isOpen && (
+        <div className="fixed inset-0 z-[110] flex items-start justify-center pt-10 md:pt-16 px-4 pointer-events-none">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/75 backdrop-blur-md pointer-events-auto"
+          />
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: -20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: -20 }}
+            className="fluost-box p-6 md:p-8 max-w-lg w-full relative my-8 z-10 pointer-events-auto"
+          >
           <div className="fluost-fluid-bg"></div>
           <div className="fluost-sand-corner"></div>
 
@@ -223,6 +231,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
 };
