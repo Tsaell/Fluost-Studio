@@ -1,0 +1,6 @@
+{
+  "name": "Fluost - Instagram Content & Grid Studio",
+  "description": "Instagram content and grid layout studio featuring EnGrid image slicer, ListenList audio detector, Fluost AI caption generator, and Visualost image analyzer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
