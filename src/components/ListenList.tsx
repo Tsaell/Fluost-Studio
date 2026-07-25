@@ -6,11 +6,10 @@ import { fetchMusicAI } from '../lib/geminiClient';
 
 interface ListenListProps {
   onShowModal: (title: string, body: string) => void;
-  customApiKey: string;
   onOpenApiModal?: () => void;
 }
 
-export const ListenList: React.FC<ListenListProps> = ({ onShowModal, customApiKey, onOpenApiModal }) => {
+export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiModal }) => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resultText, setResultText] = useState<string | null>(null);
@@ -54,7 +53,7 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, customApiKe
     setResultText(null);
 
     try {
-      const result = await fetchMusicAI(finalQuery, customApiKey);
+      const result = await fetchMusicAI(finalQuery);
       setResultText(result);
     } catch (err: any) {
       console.error(err);

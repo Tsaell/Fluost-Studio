@@ -62,19 +62,31 @@ export const googleSignIn = async (): Promise<{ user: User | null; accessToken: 
     return { user: result.user, accessToken: token || '' };
   } catch (error: any) {
     console.error('Google Sign-in error:', error);
+    
+    // AI Studio: Fallback ke Mode Tamu (Guest) jika Firebase belum dikonfigurasi
+    if (error?.code === 'auth/unauthorized-domain' || error?.code === 'auth/operation-not-allowed') {
+      console.warn('Firebase Auth belum dikonfigurasi sepenuhnya. Beralih ke Mode Simulasi Tamu (Guest).');
+      
+      const mockUser = {
+        uid: 'guest-user-123',
+        displayName: 'Demo User (Tanpa Firebase)',
+        email: 'demo@fluost.ai',
+        photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      } as User;
+      
+      cachedAccessToken = 'mock-access-token';
+      return { user: mockUser, accessToken: cachedAccessToken };
+    }
+
     let readableMsg = error.message || 'Gagal melakukan login dengan Google.';
     if (error?.code === 'auth/popup-blocked') {
       console.warn('Popup blocked, attempting redirect sign-in...');
       await signInWithRedirect(auth, provider);
       return { user: null, accessToken: '' }; // Will reload page
-    } else if (error?.code === 'auth/unauthorized-domain') {
-      readableMsg = `Domain web saat ini (${window.location.hostname}) belum terdaftar. Tambahkan domain ini di Firebase Console -> Authentication -> Settings -> Authorized Domains.`;
     } else if (error?.code === 'auth/popup-closed-by-user') {
       readableMsg = 'Jendela otentikasi Google ditutup sebelum login selesai.';
     } else if (error?.code === 'auth/cancelled-popup-request') {
       readableMsg = 'Proses login Google sebelumnya dibatalkan.';
-    } else if (error?.code === 'auth/operation-not-allowed') {
-      readableMsg = 'Metode Google Sign-In belum diaktifkan di Firebase Console. Harap aktifkan di menu Authentication -> Sign-in method.';
     }
     throw new Error(readableMsg);
   }

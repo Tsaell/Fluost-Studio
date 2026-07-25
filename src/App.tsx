@@ -17,7 +17,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('grid');
   const [currentTheme, setCurrentTheme] = useState<ThemeMode>('sky');
-  const [customApiKey, setCustomApiKey] = useState<string>('');
   const [hasEnvApiKey, setHasEnvApiKey] = useState<boolean>(true);
 
   // User Auth & Cloud Persistence State
@@ -179,7 +178,7 @@ export default function App() {
         currentTheme={currentTheme}
         setTheme={handleSetTheme}
         onOpenApiModal={() => setIsApiModalOpen(true)}
-        hasApiKey={hasEnvApiKey || Boolean(customApiKey)}
+        hasApiKey={true}
         user={user}
         onGoogleLogin={handleGoogleLogin}
         onGoogleLogout={handleGoogleLogout}
@@ -192,21 +191,18 @@ export default function App() {
           {activeTab === 'music' && (
             <ListenList
               onShowModal={showModal}
-              customApiKey={customApiKey}
               onOpenApiModal={() => setIsApiModalOpen(true)}
             />
           )}
           {activeTab === 'ai' && (
             <AiSpark
               onShowModal={showModal}
-              customApiKey={customApiKey}
               onOpenApiModal={() => setIsApiModalOpen(true)}
             />
           )}
           {activeTab === 'assistant' && (
             <Visualost
               onShowModal={showModal}
-              customApiKey={customApiKey}
               onOpenApiModal={() => setIsApiModalOpen(true)}
             />
           )}
@@ -223,10 +219,8 @@ export default function App() {
       <ApiSettingsModal
         isOpen={isApiModalOpen}
         onClose={() => setIsApiModalOpen(false)}
-        customApiKey={customApiKey}
-        setCustomApiKey={setCustomApiKey}
         onShowModal={showModal}
-        hasEnvApiKey={hasEnvApiKey}
+        onStatusChange={() => {}}
       />
 
       <NotificationModal

@@ -64,15 +64,66 @@ export const EnGrid: React.FC<EnGridProps> = ({ onShowModal }) => {
     img.src = url;
   };
 
-  // Re-generate grid slices with debounce to avoid UI lag on low-end devices
+  // Generate ultra-fast CSS-based layout for live preview (0 ms lag!)
   useEffect(() => {
-    if (imageObj) {
-      const timer = setTimeout(() => {
-        generateSlices();
-      }, 300);
-      return () => clearTimeout(timer);
+    if (imageObj && imageSrc) {
+      const totalTiles = cols * rows;
+      const pieces: GridPiece[] = [];
+      const targetAspect = cols / rows;
+      const imgAspect = imageObj.width / imageObj.height;
+
+      let cropW = imageObj.width;
+      let cropH = imageObj.height;
+      let cropX = 0;
+      let cropY = 0;
+
+      if (imgAspect > targetAspect) {
+        cropW = imageObj.height * targetAspect;
+        cropH = imageObj.height;
+        cropX = (imageObj.width - cropW) / 2;
+      } else {
+        cropW = imageObj.width;
+        cropH = imageObj.width / targetAspect;
+        cropY = (imageObj.height - cropH) / 2;
+      }
+
+      const scaledCropW = cropW / scale;
+      const scaledCropH = cropH / scale;
+      const maxShiftX = (cropW - scaledCropW) / 2;
+      const maxShiftY = (cropH - scaledCropH) / 2;
+      const finalCropX = cropX + (cropW - scaledCropW) / 2 - (offsetX / 100) * (maxShiftX || cropW * 0.25);
+      const finalCropY = cropY + (cropH - scaledCropH) / 2 - (offsetY / 100) * (maxShiftY || cropH * 0.25);
+      const tileW = scaledCropW / cols;
+      const tileH = scaledCropH / rows;
+
+      let tileId = 1;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const uploadOrder = totalTiles - tileId + 1;
+          const bgStyle: React.CSSProperties = {
+            position: 'absolute',
+            width: `${(imageObj.width / tileW) * 100}%`,
+            height: `${(imageObj.height / tileH) * 100}%`,
+            left: `-${((finalCropX + c * tileW) / tileW) * 100}%`,
+            top: `-${((finalCropY + r * tileH) / tileH) * 100}%`,
+            pointerEvents: 'none',
+            maxWidth: 'none' // critical for absolute scaling
+          };
+
+          pieces.push({
+            id: tileId,
+            bgStyle,
+            row: r,
+            col: c,
+            uploadOrder,
+          });
+          tileId++;
+        }
+      }
+      setGridPieces(pieces);
     }
-  }, [imageObj, cols, rows, scale, offsetX, offsetY]);
+  }, [imageObj, cols, rows, scale, offsetX, offsetY, imageSrc]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -92,92 +143,49 @@ export const EnGrid: React.FC<EnGridProps> = ({ onShowModal }) => {
     }
   };
 
-  const generateSlices = () => {
-    if (!imageObj) return;
-
-    const totalTiles = cols * rows;
-    const pieces: GridPiece[] = [];
-
-    // Target grid aspect ratio is cols : rows
+  const getCanvasDataUrlForPiece = (piece: GridPiece, exportSize = 1080): string | null => {
+    if (!imageObj) return null;
     const targetAspect = cols / rows;
     const imgAspect = imageObj.width / imageObj.height;
-
     let cropW = imageObj.width;
     let cropH = imageObj.height;
     let cropX = 0;
     let cropY = 0;
-
     if (imgAspect > targetAspect) {
-      // Image is wider than target aspect
       cropW = imageObj.height * targetAspect;
       cropH = imageObj.height;
       cropX = (imageObj.width - cropW) / 2;
     } else {
-      // Image is taller than target aspect
       cropW = imageObj.width;
       cropH = imageObj.width / targetAspect;
       cropY = (imageObj.height - cropH) / 2;
     }
-
-    // Apply scale & pan offset
     const scaledCropW = cropW / scale;
     const scaledCropH = cropH / scale;
-
     const maxShiftX = (cropW - scaledCropW) / 2;
     const maxShiftY = (cropH - scaledCropH) / 2;
-
     const finalCropX = cropX + (cropW - scaledCropW) / 2 - (offsetX / 100) * (maxShiftX || cropW * 0.25);
     const finalCropY = cropY + (cropH - scaledCropH) / 2 - (offsetY / 100) * (maxShiftY || cropH * 0.25);
-
     const tileW = scaledCropW / cols;
     const tileH = scaledCropH / rows;
-
-    let tileId = 1;
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const canvas = document.createElement('canvas');
-        // Export high-res tile (e.g. 1080x1080 standard for Instagram)
-        const exportSize = 1080;
-        canvas.width = exportSize;
-        canvas.height = exportSize;
-
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(
-            imageObj,
-            finalCropX + c * tileW,
-            finalCropY + r * tileH,
-            tileW,
-            tileH,
-            0,
-            0,
-            exportSize,
-            exportSize
-          );
-        }
-
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-        
-        // Instagram posts appear in reverse feed order (last uploaded is on top-left)
-        // Upload order: bottom row rightmost tile (#N) is uploaded FIRST
-        const uploadOrder = totalTiles - tileId + 1;
-
-        pieces.push({
-          id: tileId,
-          dataUrl,
-          row: r,
-          col: c,
-          uploadOrder,
-        });
-
-        tileId++;
-      }
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = exportSize;
+    canvas.height = exportSize;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(
+        imageObj,
+        finalCropX + piece.col * tileW,
+        finalCropY + piece.row * tileH,
+        tileW,
+        tileH,
+        0, 0, exportSize, exportSize
+      );
     }
-
-    setGridPieces(pieces);
+    return canvas.toDataURL('image/jpeg', 0.92);
   };
 
   // Drag handlers for pan offset on mobile/desktop
@@ -248,7 +256,8 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
       folder?.file('BACA_PANDUAN_UPLOAD.txt', instructions);
 
       gridPieces.forEach((piece) => {
-        const base64Data = piece.dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+        const dataUrl = getCanvasDataUrlForPiece(piece) || '';
+        const base64Data = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
         // Format filename with order hint
         const filename = `tile_${piece.uploadOrder.toString().padStart(2, '0')}_of_${gridPieces.length}_grid_${piece.id}.jpg`;
         folder?.file(filename, base64Data, { base64: true });
@@ -271,8 +280,10 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
 
   // Single tile download
   const downloadSingleTile = (piece: GridPiece) => {
+    const dataUrl = getCanvasDataUrlForPiece(piece);
+    if (!dataUrl) return;
     const link = document.createElement('a');
-    link.href = piece.dataUrl;
+    link.href = dataUrl;
     link.download = `fluost_grid_tile_${piece.id}.jpg`;
     link.click();
   };
@@ -603,9 +614,9 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
                         className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer border border-white/10 hover:border-[var(--fluid-2)] shadow-md transition-all hover:scale-[1.02] hover:z-20"
                       >
                         <img 
-                          src={piece.dataUrl} 
+                          src={imageSrc} 
+                          style={piece.bgStyle}
                           alt={`Potongan #${piece.id}`} 
-                          className="w-full h-full object-cover"
                         />
 
                         {/* Tile Overlay Badge */}
@@ -695,7 +706,7 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
 
                 {/* Tile Large Preview */}
                 <div className="aspect-square w-full max-w-xs mx-auto rounded-2xl overflow-hidden border-2 border-[var(--fluid-2)] shadow-2xl relative">
-                  <img src={selectedPiece.dataUrl} alt={`Slice ${selectedPiece.id}`} className="w-full h-full object-cover" />
+                  <img src={imageSrc} style={selectedPiece.bgStyle} alt={`Slice ${selectedPiece.id}`} />
                 </div>
 
                 <div className="bg-black/20 p-4 rounded-2xl border border-white/10 space-y-2 text-xs">

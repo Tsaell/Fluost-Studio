@@ -7,11 +7,10 @@ import { compressImage } from '../lib/imageUtils';
 
 interface VisualostProps {
   onShowModal: (title: string, body: string) => void;
-  customApiKey: string;
   onOpenApiModal?: () => void;
 }
 
-export const Visualost: React.FC<VisualostProps> = ({ onShowModal, customApiKey, onOpenApiModal }) => {
+export const Visualost: React.FC<VisualostProps> = ({ onShowModal, onOpenApiModal }) => {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [base64Data, setBase64Data] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string | null>(null);
@@ -52,7 +51,7 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, customApiKey,
     setResultText(null);
 
     try {
-      const result = await fetchVisualAI(base64Data, mimeType, customApiKey);
+      const result = await fetchVisualAI(base64Data, mimeType);
       setResultText(result);
     } catch (err: any) {
       console.error(err);

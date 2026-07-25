@@ -7,7 +7,6 @@ import { compressImage, readFileAsBase64 } from '../lib/imageUtils';
 
 interface AiSparkProps {
   onShowModal: (title: string, body: string) => void;
-  customApiKey: string;
   onOpenApiModal?: () => void;
 }
 
@@ -20,7 +19,7 @@ interface AttachedMedia {
   isVideo: boolean;
 }
 
-export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey, onOpenApiModal }) => {
+export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, onOpenApiModal }) => {
   const [topic, setTopic] = useState('');
   const [style, setStyle] = useState('Klasik & Elegan');
   const [media, setMedia] = useState<AttachedMedia | null>(null);
@@ -100,8 +99,7 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey, onO
         style,
         media?.base64Data,
         media?.mimeType,
-        media?.fileName,
-        customApiKey
+        media?.fileName
       );
       setResultText(result);
     } catch (err: any) {
