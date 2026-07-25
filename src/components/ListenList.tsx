@@ -58,7 +58,7 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, customApiKe
       setResultText(result);
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || 'Gagal memproses deteksi audio.');
+      setErrorMessage(String(err?.message || err || 'Gagal memproses deteksi audio.'));
     } finally {
       setIsLoading(false);
     }

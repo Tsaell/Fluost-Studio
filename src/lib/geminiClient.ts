@@ -9,7 +9,7 @@ function getClientApiKey(customKey?: string): string | null {
 }
 
 async function generateClientWithFallback(ai: GoogleGenAI, contents: any): Promise<string> {
-  const modelsToTry = ['gemini-3.6-flash', 'gemini-flash-latest'];
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash'];
   let lastError: any = null;
 
   for (const model of modelsToTry) {

@@ -65,13 +65,13 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
         let resText = '';
         try {
           const res = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
+            model: 'gemini-2.5-flash',
             contents: 'Tanggapi dengan satu kata: OK',
           });
           resText = res.text || '';
         } catch {
           const res = await ai.models.generateContent({
-            model: 'gemini-flash-latest',
+            model: 'gemini-1.5-flash',
             contents: 'Tanggapi dengan satu kata: OK',
           });
           resText = res.text || '';
@@ -111,19 +111,19 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[110] flex items-start justify-center pt-10 md:pt-16 px-4 pointer-events-none">
+        <div className="fixed inset-0 z-[110] overflow-y-auto pointer-events-auto flex items-start justify-center p-4 py-8 md:py-12">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/75 backdrop-blur-md pointer-events-auto"
+            className="fixed inset-0 bg-black/75 backdrop-blur-md"
           />
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: -20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: -20 }}
-            className="fluost-box p-6 md:p-8 max-w-lg w-full relative my-8 z-10 pointer-events-auto"
+            className="fluost-box p-6 md:p-8 max-w-lg w-full relative z-10 my-auto"
           >
           <div className="fluost-fluid-bg"></div>
           <div className="fluost-sand-corner"></div>

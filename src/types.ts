@@ -1,4 +1,4 @@
-export type ThemeMode = 'default' | 'light' | 'renaissance' | 'islamic' | 'sky' | 'atom' | 'dark';
+export type ThemeMode = 'default' | 'light' | 'renaissance' | 'islamic' | 'sky' | 'atom' | 'dark' | 'cyberpunk' | 'nature' | 'monochrome' | 'sunset';
 
 export type TabType = 'grid' | 'music' | 'ai' | 'assistant' | 'planner';
 

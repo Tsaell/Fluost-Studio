@@ -8,7 +8,6 @@ import {
   Eye, 
   Calendar, 
   Key, 
-  Shapes,
   Palette,
   CheckCircle2,
   ChevronLeft,
@@ -19,6 +18,15 @@ import {
   LogOut,
   User as UserIcon
 } from 'lucide-react';
+
+const WaveIceLogo = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" strokeOpacity="0.8" />
+    <path d="M2 12c3-4 6-4 10 0s7 4 10 0" stroke="currentColor" strokeWidth="2" />
+    <path d="M2 17c3-3 6-3 10 0s7 3 10 0" stroke="currentColor" strokeOpacity="0.3" />
+    <path d="M2 7c3-3 6-3 10 0s7 3 10 0" stroke="currentColor" strokeOpacity="0.3" />
+  </svg>
+);
 
 interface HeaderProps {
   activeTab: TabType;
@@ -94,6 +102,30 @@ export const Header: React.FC<HeaderProps> = ({
       color: 'bg-pink-500',
       desc: 'Tema malam gelap autentik berdaya hemat energi dengan aksen magenta & cyan menyala.' 
     },
+    { 
+      id: 'cyberpunk', 
+      label: 'Neon Cyberpunk', 
+      color: 'bg-[#0FF4C6]',
+      desc: 'Tema neon futuristik dengan kilauan cyan dan merah muda tajam berlatar belakang ungu gelap.' 
+    },
+    { 
+      id: 'nature', 
+      label: 'Serene Nature', 
+      color: 'bg-[#4CAF50]',
+      desc: 'Tema alam organik yang menenangkan dengan paduan hijau cerah dan latar putih natural.' 
+    },
+    { 
+      id: 'monochrome', 
+      label: 'Pure Monochrome', 
+      color: 'bg-gray-400',
+      desc: 'Tema hitam putih minimalis dengan kontras tajam untuk fokus bebas gangguan.' 
+    },
+    { 
+      id: 'sunset', 
+      label: 'Crimson Sunset', 
+      color: 'bg-[#FF9800]',
+      desc: 'Tema senja hangat menyala dengan gradasi merah tua dan oranye matahari terbenam.' 
+    },
   ];
 
   // Feature Showcase Slider Index & Refs for Mobile Topbar
@@ -146,7 +178,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Brand Header */}
           <div className="flex items-center gap-3 pb-4 border-b border-[var(--ice-border)]">
             <div className="w-11 h-11 bg-gradient-to-tr from-[#3D5AFE] to-[#2563EB] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(61,90,254,0.6)] border border-white/30 shrink-0">
-              <Shapes className="w-6 h-6 text-white" />
+              <WaveIceLogo className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-lg font-black tracking-wider flex items-center gap-1.5">
@@ -313,14 +345,14 @@ export const Header: React.FC<HeaderProps> = ({
       {/* ======================================================== */}
       {/* MOBILE / TABLET FLOATING TASKBAR + SLIDER (lg:hidden)    */}
       {/* ======================================================== */}
-      <header className="lg:hidden fixed top-2 left-0 right-0 z-50 px-2.5 sm:px-4 pointer-events-none transition-all duration-300">
-        <div className="pointer-events-auto bg-[var(--card-bg)] backdrop-blur-3xl border-2 border-[var(--ice-border)] p-3 shadow-[0_15px_40px_rgba(0,0,0,0.2)] flex flex-col gap-2.5 transition-colors duration-500 mx-auto max-w-3xl rounded-2xl text-[var(--text-main)]">
+      <header className="lg:hidden fixed bottom-4 left-0 right-0 z-50 px-2.5 sm:px-4 pointer-events-none transition-all duration-300 pb-safe">
+        <div className="pointer-events-auto bg-[var(--card-bg)] backdrop-blur-3xl border-2 border-[var(--ice-border)] p-3 shadow-[0_-15px_40px_rgba(0,0,0,0.2)] flex flex-col gap-2.5 transition-colors duration-500 mx-auto max-w-3xl rounded-2xl text-[var(--text-main)]">
           
           {/* Top Row: Brand Logo, Theme Palette & API Button */}
           <div className="flex items-center justify-between gap-2 px-1">
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-8 h-8 bg-gradient-to-tr from-[#3D5AFE] to-sky-400 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(61,90,254,0.6)] shrink-0 border border-white/30">
-                <Shapes className="w-4 h-4 text-white" />
+                <WaveIceLogo className="w-4 h-4 text-white" />
               </div>
               <div>
                 <h1 className="text-sm font-black tracking-tight flex items-center gap-1">

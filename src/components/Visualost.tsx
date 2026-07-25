@@ -56,7 +56,7 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, customApiKey,
       setResultText(result);
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || 'Terjadi kesalahan saat pembedahan visual.');
+      setErrorMessage(String(err?.message || err || 'Terjadi kesalahan saat pembedahan visual.'));
     } finally {
       setIsLoading(false);
     }

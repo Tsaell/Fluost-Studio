@@ -168,20 +168,20 @@ export const ThemeLoader: React.FC<ThemeLoaderProps> = ({
           </div>
         )}
 
-        {/* DEFAULT / DARK THEME: Futuristic Cyber Neural Matrix Spinner */}
-        {(activeTheme === 'default' || activeTheme === 'dark') && (
+        {/* DEFAULT / DARK / OTHER THEMES: Futuristic Cyber Neural Matrix Spinner */}
+        {(!['sky', 'atom', 'renaissance', 'islamic', 'light'].includes(activeTheme)) && (
           <div className="relative w-16 h-16 flex items-center justify-center">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              className="w-12 h-12 rounded-2xl border-2 border-[#3D5AFE]/40 border-t-[#3D5AFE] border-r-sky-400 shadow-[0_0_15px_rgba(61,90,254,0.5)]"
+              className="w-12 h-12 rounded-2xl border-2 border-[var(--fluid-1)]/40 border-t-[var(--fluid-1)] border-r-[var(--fluid-2)] shadow-[0_0_15px_var(--accent-glow)]"
             />
             <motion.div
               animate={{ rotate: -360 }}
               transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-              className="absolute w-7 h-7 rounded-lg border-2 border-sky-400/50 border-b-sky-300"
+              className="absolute w-7 h-7 rounded-lg border-2 border-[var(--fluid-2)]/50 border-b-[var(--fluid-3)]"
             />
-            <div className="w-2 h-2 rounded-full bg-[#3D5AFE] shadow-[0_0_8px_#3D5AFE]" />
+            <div className="w-2 h-2 rounded-full bg-[var(--fluid-1)] shadow-[0_0_8px_var(--fluid-1)]" />
           </div>
         )}
       </div>

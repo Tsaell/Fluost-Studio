@@ -64,10 +64,13 @@ export const EnGrid: React.FC<EnGridProps> = ({ onShowModal }) => {
     img.src = url;
   };
 
-  // Re-generate grid slices whenever imageObj, cols, rows, scale, offsetX, or offsetY change
+  // Re-generate grid slices with debounce to avoid UI lag on low-end devices
   useEffect(() => {
     if (imageObj) {
-      generateSlices();
+      const timer = setTimeout(() => {
+        generateSlices();
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, [imageObj, cols, rows, scale, offsetX, offsetY]);
 

@@ -366,3 +366,59 @@ body {
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 
+
+[data-theme="cyberpunk"] {
+  /* Neon Cyberpunk */
+  --bg-base: #0D0221;
+  --text-main: #0FF4C6;
+  --text-muted: #FF0055;
+  --fluid-1: #0FF4C6;
+  --fluid-2: #FF0055;
+  --fluid-3: #8A2BE2;
+  --ice-border: rgba(15, 244, 198, 0.4);
+  --ice-bg: rgba(13, 2, 33, 0.8);
+  --card-bg: rgba(10, 2, 26, 0.9);
+  --accent-glow: rgba(255, 0, 85, 0.5);
+}
+
+[data-theme="nature"] {
+  /* Serene Nature */
+  --bg-base: #F1F8E9;
+  --text-main: #1B5E20;
+  --text-muted: #33691E;
+  --fluid-1: #4CAF50;
+  --fluid-2: #8BC34A;
+  --fluid-3: #CDDC39;
+  --ice-border: rgba(76, 175, 80, 0.3);
+  --ice-bg: rgba(241, 248, 233, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --accent-glow: rgba(139, 195, 74, 0.3);
+}
+
+[data-theme="monochrome"] {
+  /* Pure Monochrome */
+  --bg-base: #FFFFFF;
+  --text-main: #000000;
+  --text-muted: #404040;
+  --fluid-1: #404040;
+  --fluid-2: #808080;
+  --fluid-3: #C0C0C0;
+  --ice-border: rgba(0, 0, 0, 0.15);
+  --ice-bg: rgba(255, 255, 255, 0.95);
+  --card-bg: rgba(255, 255, 255, 1);
+  --accent-glow: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="sunset"] {
+  /* Crimson Sunset */
+  --bg-base: #FFEBEE;
+  --text-main: #4A148C;
+  --text-muted: #880E4F;
+  --fluid-1: #FF5252;
+  --fluid-2: #FF9800;
+  --fluid-3: #FFC107;
+  --ice-border: rgba(255, 82, 82, 0.4);
+  --ice-bg: rgba(255, 235, 238, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --accent-glow: rgba(255, 152, 0, 0.4);
+}

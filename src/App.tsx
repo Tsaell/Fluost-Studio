@@ -153,6 +153,10 @@ export default function App() {
     islamic: 'Golden Age',
     atom: 'Tiny World',
     dark: 'Authentic Dark',
+    cyberpunk: 'Neon Cyberpunk',
+    nature: 'Serene Nature',
+    monochrome: 'Pure Monochrome',
+    sunset: 'Crimson Sunset',
   };
 
   const handleSetTheme = (themeName: ThemeMode) => {
@@ -164,7 +168,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative pb-12 pt-48 sm:pt-52 lg:pt-8 lg:pl-72 transition-colors duration-500 overflow-x-hidden">
+    <div className="min-h-screen flex flex-col relative pb-52 pt-6 sm:pt-8 lg:pb-12 lg:pt-8 lg:pl-72 transition-colors duration-500 overflow-x-hidden">
       {/* Dynamic Theme Background Canvas & Particle Animations */}
       <ThemeBackground currentTheme={currentTheme} />
 

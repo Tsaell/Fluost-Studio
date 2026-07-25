@@ -106,7 +106,7 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey, onO
       setResultText(result);
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || 'Gagal memproses AI Studio.');
+      setErrorMessage(String(err?.message || err || 'Gagal memproses AI Studio.'));
     } finally {
       setIsLoading(false);
     }
