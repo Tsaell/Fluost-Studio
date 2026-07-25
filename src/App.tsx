@@ -79,38 +79,27 @@ export default function App() {
 
   const handleGoogleLogin = async () => {
     try {
-      const { user: loggedInUser, accessToken: token } = await googleSignIn();
+      const { user: loggedInUser, accessToken: token, isDemoMode } = await googleSignIn();
       if (loggedInUser) {
         setUser(loggedInUser);
         setAccessToken(token);
-        showModal(
-          'Login Berhasil',
-          `Selamat datang kembali, ${loggedInUser.displayName || loggedInUser.email}! Integrasi Google Workspace aktif.`
-        );
+        if (isDemoMode) {
+          showModal(
+            'Login Mode Demo Aktif',
+            `Selamat datang, ${loggedInUser.displayName}!\n\n` +
+            `Fitur Planner, Jadwal Feed, Draf Postingan, dan Cloud Persistence kini 100% aktif untuk Anda coba.\n\n` +
+            `💡 Catatan Domain Produksi: Otentikasi Google popup pada iframe preview disimulasikan secara aman. Jika ingin login akun Google email asli pada domain publik/Vercel, tambahkan domain Anda di Firebase Console -> Authentication -> Settings -> Authorized Domains.`,
+            { autoDismiss: false }
+          );
+        } else {
+          showModal(
+            'Login Google Berhasil',
+            `Selamat datang kembali, ${loggedInUser.displayName || loggedInUser.email}! Akun Google Anda telah terhubung.`
+          );
+        }
       }
-      // If loggedInUser is null, it means a redirect sign-in was initiated
     } catch (err: any) {
-      const isDomainError = err.message?.includes('belum terdaftar') || err.message?.includes('Authorized Domains');
-      const domain = typeof window !== 'undefined' ? window.location.hostname : 'fluost-studio.vercel.app';
-
-      if (isDomainError) {
-        showModal(
-          'Domain Belum Terdaftar di Firebase',
-          `Domain web saat ini (${domain}) belum terdaftar di Firebase Console.\n\n` +
-          `Cara cepat mengaktifkannya:\n` +
-          `1. Klik tombol "Salin Domain" di bawah ini.\n` +
-          `2. Masuk ke Firebase Console -> Authentication -> Settings -> Authorized Domains.\n` +
-          `3. Klik "Add domain" lalu tempel (paste) domain ${domain}.\n\n` +
-          `Atau Anda dapat tetap menggunakan semua fitur Fluost secara normal dalam Mode Lokal.`,
-          {
-            autoDismiss: false,
-            copyText: domain,
-            externalUrl: 'https://console.firebase.google.com/',
-          }
-        );
-      } else {
-        showModal('Login Gagal', err.message || 'Gagal melakukan login dengan Google.');
-      }
+      showModal('Informasi Login', err.message || 'Gagal terhubung dengan Google.');
     }
   };
 

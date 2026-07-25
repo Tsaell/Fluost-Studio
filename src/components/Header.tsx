@@ -361,36 +361,26 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Mobile Controls: Themes, Info, Google & API */}
+            {/* Mobile Controls: Themes Button, Google Login & API Key */}
             <div className="flex items-center gap-1.5 shrink-0 pl-1">
-              <div className="flex items-center gap-1 bg-[var(--ice-bg)] p-1 rounded-xl border border-[var(--ice-border)] shrink-0">
-                {themes.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setTheme(t.id)}
-                    title={`${t.label}: ${t.desc}`}
-                    className={`w-3.5 h-3.5 rounded-full ${t.color} border transition-all ${
-                      currentTheme === t.id
-                        ? 'border-white scale-125 shadow-md ring-1 ring-[#3D5AFE]'
-                        : 'border-white/30 opacity-60'
-                    }`}
-                  />
-                ))}
-              </div>
-
+              {/* Mobile Theme Selector Button */}
               <button
                 onClick={() => setShowThemeGuideModal(true)}
-                title="Panduan & Deskripsi Tema UI"
-                className="p-1.5 rounded-xl bg-[var(--ice-bg)] border border-[var(--ice-border)] text-xs flex items-center justify-center font-bold hover:opacity-80 shrink-0"
+                title="Pilih Tema UI (11 Atmosfer Berbeda)"
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-[var(--ice-bg)] border border-[var(--ice-border)] hover:border-[#3D5AFE] text-xs font-extrabold shrink-0 active:scale-95 transition-all shadow-sm"
               >
-                <Info className="w-3.5 h-3.5 text-[#3D5AFE]" />
+                <Palette className="w-3.5 h-3.5 text-[#3D5AFE] shrink-0" />
+                <div className={`w-3 h-3 rounded-full ${activeThemeObj.color} border border-white/60 shadow-sm shrink-0`} />
+                <span className="text-[10px] font-extrabold max-w-[70px] sm:max-w-[110px] truncate">
+                  {activeThemeObj.label}
+                </span>
               </button>
 
               {user ? (
                 <button
                   onClick={onGoogleLogout}
                   title={`Login sebagai ${user.email}. Klik untuk keluar.`}
-                  className="px-2 py-1 rounded-xl bg-[var(--ice-bg)] border border-[#3D5AFE] text-[10px] flex items-center gap-1 font-bold shrink-0 hover:bg-red-500/20 transition-all"
+                  className="px-2 py-1.5 rounded-xl bg-[var(--ice-bg)] border border-[#3D5AFE] text-[10px] flex items-center gap-1 font-bold shrink-0 hover:bg-red-500/20 transition-all"
                 >
                   {user.photoURL ? (
                     <img src={user.photoURL} alt={user.displayName || 'User'} className="w-4 h-4 rounded-full" />
@@ -424,6 +414,31 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className={`w-2 h-2 rounded-full ${hasApiKey ? 'bg-emerald-400' : 'bg-amber-400'}`} />
               </button>
             </div>
+          </div>
+
+          {/* Horizontal Scrollable Theme Palette Bar for Mobile */}
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full hide-scrollbar py-1 border-t border-b border-[var(--ice-border)]/60 my-0.5">
+            <span className="text-[9px] font-mono font-black uppercase tracking-wider text-[#3D5AFE] shrink-0 pl-1 flex items-center gap-1">
+              <Palette className="w-3 h-3" /> Tema UI:
+            </span>
+            {themes.map((t) => {
+              const isCurrent = currentTheme === t.id;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setTheme(t.id)}
+                  title={`${t.label}: ${t.desc}`}
+                  className={`shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-bold flex items-center gap-1.5 transition-all border ${
+                    isCurrent
+                      ? 'bg-[#3D5AFE] text-white border-white/80 shadow-md scale-105 ring-1 ring-[#3D5AFE]'
+                      : 'bg-[var(--ice-bg)] border-[var(--ice-border)] opacity-80 hover:opacity-100'
+                  }`}
+                >
+                  <div className={`w-2.5 h-2.5 rounded-full ${t.color} border border-white/60 shrink-0`} />
+                  <span className="truncate max-w-[90px]">{t.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Navigation Tab Pills (Scrollable Horizontal) */}
@@ -515,8 +530,8 @@ export const Header: React.FC<HeaderProps> = ({
                   <Palette className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-base leading-tight">Panduan Tema UI Fluost Studio</h3>
-                  <p className="text-xs opacity-70">Eksplorasi 7 pilihan atmosfer & estetika visual</p>
+                  <h3 className="font-extrabold text-base leading-tight">Koleksi 11 Tema UI Fluost Studio</h3>
+                  <p className="text-xs opacity-70">Pilih dari 11 atmosfer & estetika visual eksklusif</p>
                 </div>
               </div>
               <button 
@@ -526,6 +541,17 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <X className="w-4 h-4" />
               </button>
+            </div>
+
+            {/* Informative Banner */}
+            <div className="p-3 rounded-2xl bg-[#3D5AFE]/15 border border-[#3D5AFE]/30 text-xs relative z-10 space-y-1">
+              <p className="font-extrabold text-[#3D5AFE] flex items-center gap-1.5">
+                <Palette className="w-4 h-4 shrink-0" />
+                <span>11 Pilihan Atmosfer Warna & Tema UI:</span>
+              </p>
+              <p className="opacity-90 leading-relaxed text-[11px]">
+                Masing-masing warna di bawah mewakili tema visual yang berbeda (Panoramic Sky, Renaissance, Golden Age, Neon Cyberpunk, Sunset, dll.). Pilih warna favorit Anda untuk mengubah seluruh warna, font, dan latar belakang aplikasi secara instan!
+              </p>
             </div>
 
             <div className="space-y-2.5 relative z-10">

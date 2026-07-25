@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  /* Bento Grid Default Theme Variables (Blueen) */
-  --bg-base: #0A0A0B;
-  --text-main: #E0E0E0;
-  --text-muted: #94A3B8;
-  --fluid-1: #3D5AFE;
-  --fluid-2: #38BDF8;
-  --fluid-3: #10B981;
-  --ice-border: rgba(255, 255, 255, 0.15);
-  --ice-bg: rgba(24, 24, 27, 0.7);
-  --card-bg: rgba(18, 18, 20, 0.9);
-  --accent-glow: rgba(61, 90, 254, 0.35);
+  /* Default Theme Variables (Panoramic Sky) */
+  --bg-base: #38BDF8;
+  --text-main: #022B42;
+  --text-muted: #034061;
+  --fluid-1: #0284C7;
+  --fluid-2: #0369A1;
+  --fluid-3: #E0F2FE;
+  --ice-border: rgba(2, 132, 199, 0.35);
+  --ice-bg: rgba(255, 255, 255, 0.95);
+  --card-bg: rgba(255, 255, 255, 0.94);
+  --accent-glow: rgba(2, 132, 199, 0.3);
 }
 
 [data-theme="light"] {
