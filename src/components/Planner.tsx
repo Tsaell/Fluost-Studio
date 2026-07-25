@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { User } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, Plus, Lightbulb, Layers, CheckCircle2, Trash2, CheckSquare, HardDrive, ExternalLink, CloudUpload } from 'lucide-react';
-import { createGoogleCalendarEvent, createGoogleTask, saveFileToGoogleDrive, saveUserDataToCloud } from '../lib/firebase';
+import { saveUserDataToCloud } from '../lib/firebase';
+import { createGoogleCalendarEvent, createGoogleTask, saveFileToGoogleDrive, triggerGoogleOAuthFlow } from '../lib/googleAuth';
 
 interface PlannerProps {
   onShowModal: (title: string, body: string) => void;
@@ -86,10 +87,26 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
     syncCardsToCloud(updated);
   };
 
+  // Helper for triggering OAuth if missing real token
+  const handleOAuthConnectPrompt = async () => {
+    try {
+      setIsSyncing(true);
+      const { profile } = await triggerGoogleOAuthFlow();
+      onShowModal(
+        'Google Workspace Terhubung',
+        `Akses Google Calendar, Tasks, dan Drive telah aktif untuk akun ${profile.displayName} (${profile.email}). Silakan coba lagi tombol aksi Anda!`
+      );
+    } catch (err: any) {
+      onShowModal('Login Google Dibatalkan', err.message || 'Harap izinkan popup browser untuk login Google Workspace.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // Google Calendar Integration
   const handleAddToCalendar = async (card: PlannerCard) => {
-    if (!accessToken) {
-      onShowModal('Sesi Login Diperlukan', 'Harap login dengan Google di sidebar untuk menghubungkan Google Calendar.');
+    if (!accessToken || accessToken.startsWith('mock-')) {
+      await handleOAuthConnectPrompt();
       return;
     }
 
@@ -113,7 +130,11 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
         `Jadwal posting "${card.title}" telah ditambahkan ke Google Calendar Anda untuk besok pukul 10:00 AM.`
       );
     } catch (err: any) {
-      onShowModal('Gagal Google Calendar', err.message || 'Terjadi kesalahan saat menghubungkan Google Calendar.');
+      if (err.message === 'NO_TOKEN' || err.message?.includes('401') || err.message?.includes('Otentikasi')) {
+        await handleOAuthConnectPrompt();
+      } else {
+        onShowModal('Gagal Google Calendar', err.message || 'Terjadi kesalahan saat menghubungkan Google Calendar.');
+      }
     } finally {
       setIsSyncing(false);
     }
@@ -121,8 +142,8 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
 
   // Google Tasks Integration
   const handleAddToTasks = async (card: PlannerCard) => {
-    if (!accessToken) {
-      onShowModal('Sesi Login Diperlukan', 'Harap login dengan Google di sidebar untuk menambahkan tugas ke Google Tasks.');
+    if (!accessToken || accessToken.startsWith('mock-')) {
+      await handleOAuthConnectPrompt();
       return;
     }
 
@@ -138,7 +159,11 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
         `Tugas "${card.title}" telah berhasil masuk ke Google Tasks Anda.`
       );
     } catch (err: any) {
-      onShowModal('Gagal Google Tasks', err.message || 'Terjadi kesalahan saat mengirim ke Google Tasks.');
+      if (err.message === 'NO_TOKEN' || err.message?.includes('401') || err.message?.includes('Otentikasi')) {
+        await handleOAuthConnectPrompt();
+      } else {
+        onShowModal('Gagal Google Tasks', err.message || 'Terjadi kesalahan saat mengirim ke Google Tasks.');
+      }
     } finally {
       setIsSyncing(false);
     }
@@ -146,8 +171,8 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
 
   // Google Drive Integration
   const handleExportToDrive = async () => {
-    if (!accessToken) {
-      onShowModal('Sesi Login Diperlukan', 'Harap login dengan Google terlebih dahulu untuk mengeksport file ke Google Drive.');
+    if (!accessToken || accessToken.startsWith('mock-')) {
+      await handleOAuthConnectPrompt();
       return;
     }
 
@@ -164,7 +189,11 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
         `Dokumen perencana "${fileName}" telah berhasil diunggah ke Google Drive Anda!`
       );
     } catch (err: any) {
-      onShowModal('Gagal Google Drive', err.message || 'Terjadi kesalahan saat menyimpan file ke Google Drive.');
+      if (err.message === 'NO_TOKEN' || err.message?.includes('401') || err.message?.includes('Otentikasi')) {
+        await handleOAuthConnectPrompt();
+      } else {
+        onShowModal('Gagal Google Drive', err.message || 'Terjadi kesalahan saat menyimpan file ke Google Drive.');
+      }
     } finally {
       setIsSyncing(false);
     }

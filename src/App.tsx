@@ -11,6 +11,7 @@ import { ApiSettingsModal } from './components/ApiSettingsModal';
 import { NotificationModal } from './components/NotificationModal';
 import { ThemeBackground } from './components/ThemeBackground';
 import { initAuthListener, googleSignIn, googleSignOut, loadUserDataFromCloud, saveUserDataToCloud } from './lib/firebase';
+import { handleOAuthRedirectHash, fetchGoogleUserProfile, triggerGoogleOAuthFlow, setSavedGoogleAccessToken } from './lib/googleAuth';
 
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -38,11 +39,37 @@ export default function App() {
     body: '',
   });
 
+  // On mount: Check Google OAuth redirect token hash or saved token
+  useEffect(() => {
+    const { accessToken: token, isPopup } = handleOAuthRedirectHash();
+    if (isPopup) return;
+
+    if (token) {
+      setAccessToken(token);
+      fetchGoogleUserProfile(token)
+        .then((profile) => {
+          const u = {
+            uid: profile.uid,
+            displayName: profile.displayName,
+            email: profile.email,
+            photoURL: profile.photoURL,
+          } as User;
+          setUser(u);
+        })
+        .catch((err) => {
+          console.warn('Google saved token expired:', err);
+          setSavedGoogleAccessToken(null);
+        });
+    }
+  }, []);
+
   // Auth Listener and Cloud Sync Init
   useEffect(() => {
     const unsubscribe = initAuthListener(async (currentUser, token) => {
-      setUser(currentUser);
-      if (token) {
+      if (currentUser && !user) {
+        setUser(currentUser);
+      }
+      if (token && !accessToken) {
         setAccessToken(token);
       }
       if (currentUser) {
@@ -74,36 +101,45 @@ export default function App() {
 
   const handleGoogleLogin = async () => {
     try {
-      const { user: loggedInUser, accessToken: token, isDemoMode } = await googleSignIn();
-      if (loggedInUser) {
-        setUser(loggedInUser);
-        setAccessToken(token);
-        if (isDemoMode) {
-          showModal(
-            'Login Mode Demo Aktif',
-            `Selamat datang, ${loggedInUser.displayName}!\n\n` +
-            `Fitur Planner, Jadwal Feed, Draf Postingan, dan Cloud Persistence kini 100% aktif untuk Anda coba.\n\n` +
-            `💡 Catatan Domain Produksi: Otentikasi Google popup pada iframe preview disimulasikan secara aman. Jika ingin login akun Google email asli pada domain publik/Vercel, tambahkan domain Anda di Firebase Console -> Authentication -> Settings -> Authorized Domains.`,
-            { autoDismiss: false }
-          );
-        } else {
-          showModal(
-            'Login Google Berhasil',
-            `Selamat datang kembali, ${loggedInUser.displayName || loggedInUser.email}! Akun Google Anda telah terhubung.`
-          );
-        }
-      }
+      const { token, profile } = await triggerGoogleOAuthFlow();
+      setAccessToken(token);
+      const loggedUser = {
+        uid: profile.uid,
+        displayName: profile.displayName,
+        email: profile.email,
+        photoURL: profile.photoURL,
+      } as User;
+      setUser(loggedUser);
+      showModal(
+        'Login Google Workspace Berhasil',
+        `Selamat datang, ${profile.displayName} (${profile.email})!\n\nAkses Google Calendar, Tasks, dan Drive telah terhubung secara penuh.`
+      );
     } catch (err: any) {
-      showModal('Informasi Login', err.message || 'Gagal terhubung dengan Google.');
+      // Fallback try Firebase Sign in
+      try {
+        const { user: loggedInUser, accessToken: token } = await googleSignIn();
+        if (loggedInUser && token && !token.startsWith('mock-')) {
+          setUser(loggedInUser);
+          setAccessToken(token);
+          setSavedGoogleAccessToken(token);
+          showModal('Login Google Berhasil', `Selamat datang kembali, ${loggedInUser.displayName || loggedInUser.email}!`);
+          return;
+        }
+      } catch (e) {
+        console.warn('Firebase login fallback:', e);
+      }
+
+      showModal('Informasi Login Google', err.message || 'Gagal login Google Workspace. Izinkan popup browser untuk melanjutkan.');
     }
   };
 
   const handleGoogleLogout = async () => {
     try {
       await googleSignOut();
+      setSavedGoogleAccessToken(null);
       setUser(null);
       setAccessToken(null);
-      showModal('Logout Berhasil', 'Anda telah keluar dari akun Google.');
+      showModal('Logout Berhasil', 'Anda telah keluar dari akun Google Workspace.');
     } catch (err: any) {
       showModal('Logout Gagal', err.message || 'Gagal keluar dari akun.');
     }

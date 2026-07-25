@@ -40,7 +40,7 @@ app.get('/api/health', (req, res) => {
 
 // Helper for generating content with fallback model names
 async function generateWithFallback(ai: GoogleGenAI, contents: any) {
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  const modelsToTry = ['gemini-3.6-flash', 'gemini-flash-latest'];
   let lastError: any = null;
 
   for (const model of modelsToTry) {

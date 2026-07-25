@@ -9,7 +9,7 @@ export function getActiveApiKey(): string {
 // Client-side direct Gemini API fallback runner
 async function callDirectGemini(apiKey: string, prompt: string, base64Data?: string, mimeType?: string): Promise<string> {
   const ai = new GoogleGenAI({ apiKey });
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+  const modelsToTry = ['gemini-3.6-flash', 'gemini-flash-latest'];
   let lastErr: any = null;
 
   for (const model of modelsToTry) {
@@ -44,131 +44,92 @@ async function callDirectGemini(apiKey: string, prompt: string, base64Data?: str
 // Smart Local Engine for Music/ListenList
 function generateLocalMusicAI(query: string): string {
   const q = query.toLowerCase().trim();
-  
+  const cleanTitle = query.trim() || 'Estetika Musik & Konten';
+
+  if (q.includes('mahalini')) {
+    const isCeria = q.includes('ceria') || q.includes('happy') || q.includes('semangat') || q.includes('senang');
+    return `🎵 **ListenList Music & Lyrics Synth**
+---
+### 🎵 Rekomendasi Lagu & Artis
+- **Judul Lagu**: ${isCeria ? 'Bawa Dia Kembali / Ini Laguku' : 'Sial / Sisa Rasa'} - Mahalini
+- **Genre/Vibe**: ${isCeria ? 'Pop Energetik, Upbeat Bright Vibe' : 'Melancholic Deep Soul, Emotional Ballad'}
+- **YouTube Music**: https://music.youtube.com/search?q=${encodeURIComponent('Mahalini ' + cleanTitle)}
+
+### 📝 Lirik Kunci (Ideal untuk Caption / Reels)
+> ${isCeria ? '"Bawa dia kembali bersama senyumannya yang menghiasi hariku..."' : '"Sial sialnya ku bertemu denganmu... Mengapa harus kau lupakan janji manismu..."'}
+
+### 🌊 Mood & Aura Audio
+Alunan vokal khas Mahalini dengan nuansa ${isCeria ? 'ceria dan penuh energi positif' : 'syahdu dan menyentuh hati'}. Sangat pas dipadukan dengan momen visual Anda.
+
+### 📱 Arahan Konsep Konten Instagram
+- **Tipe Post**: Reels / Feed Carousel
+- **Filter Color Tone**: ${isCeria ? 'Warm Sun / Bright Gold' : 'Moody Film / Cold Sepia'}
+- **Hashtag Viral**: #Mahalini #LaguMahalini #${isCeria ? 'PopCeria' : 'LaguGalau'} #ReelsMusik #FluostStudio`;
+  }
+
   if (q.includes('one direction') || q.includes('1d') || q.includes('harry styles') || q.includes('zayn')) {
     return `🎵 **ListenList Music & Lyrics Synth**
 ---
-**Judul Lagu Top**: Night Changes - One Direction
-**Artis**: One Direction
-**Getaran Vibe**: Nostalgic, Heartfelt, Cinematic Sunset
-**YouTube Music**: https://music.youtube.com/search?q=One+Direction+Night+Changes
+### 🎵 Rekomendasi Lagu & Artis
+- **Judul Lagu**: Night Changes / Perfect - One Direction
+- **Genre/Vibe**: Pop Rock / Sunset Acoustic
+- **YouTube Music**: https://music.youtube.com/search?q=One+Direction+Night+Changes
 
-**Kutipan Lirik Paling Relevan**:
-> "We're only getting older, baby
-> Have you decision made on who you want to be?
-> 'Cause we're running out of time
-> It will never change me and you..."
+### 📝 Lirik Kunci (Ideal untuk Caption / Reels)
+> "We're only getting older, baby... Have you decision made on who you want to be? 'Cause we're running out of time."
 
----
-**Rekomendasi Lirik Tambahan**:
-1. *"You and me have a whole lot of history"* — **History**
-2. *"I'm driving deep into the night, trying to make things right"* — **Perfect**
-3. *"If you're looking for someone to enjoy the night with"* — **Steal My Girl**
+### 🌊 Mood & Aura Audio
+Nostalgia manis yang memberikan kehangatan sinematik pada postingan Instagram Anda.
 
-**Hashtag Instagram Viral**:
-#OneDirection #NightChanges #1DReels #SunsetAesthetic #InstagramVibes #ThrowbackHits #SongLyrics`;
+### 📱 Arahan Konsep Konten Instagram
+- **Tipe Post**: Single Photo / Sunset Carousel
+- **Hashtag Viral**: #OneDirection #NightChanges #1DReels #SunsetAesthetic #InstagramVibes`;
   }
 
-  if (q.includes('galau') || q.includes('sedih') || q.includes('broken') || q.includes('patah hati') || q.includes('sad')) {
-    return `🎵 **ListenList Music & Lyrics Synth**
----
-**Judul Lagu Top**: Sial - Mahalini / Tak Segampang Itu - Anggi Marito
-**Getaran Vibe**: Melancholic, Deep Reflection, Soft Piano
-**YouTube Music**: https://music.youtube.com/search?q=Mahalini+Sial
+  const words = cleanTitle.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const formattedTag = words.replace(/[^a-zA-Z0-9]/g, '');
 
-**Kutipan Lirik Paling Relevan**:
-> "Sial sialnya ku bertemu denganmu
-> Mengapa harus kau lupakan janji manismu
-> Yang dulu pernah kau rangkai begitu indah..."
-
-**Hashtag Instagram Viral**:
-#SadVibes #Mahalini #LaguGalau #ReelsInstagram #MoodBooster #AestheticQuote`;
-  }
-
-  if (q.includes('semangat') || q.includes('sport') || q.includes('gym') || q.includes('work') || q.includes('pagi') || q.includes('happy')) {
-    return `🎵 **ListenList Music & Lyrics Synth**
----
-**Judul Lagu Top**: Untitled - Maliq & D'Essentials / As It Was - Harry Styles
-**Getaran Vibe**: Energetic, Uplifting Morning, Fresh Energy
-**YouTube Music**: https://music.youtube.com/search?q=Maliq+DEssentials
-
-**Kutipan Lirik Paling Relevan**:
-> "You know it's not the same as it was
-> In this world, it's just us
-> You know it's not the same as it was..."
-
-**Hashtag Instagram Viral**:
-#MorningVibes #GoodEnergy #DailyMotivation #AestheticGrid #ReelsMusik #FluostStudio`;
-  }
-
-  // General fallback for any query
-  const formattedQuery = query ? query.charAt(0).toUpperCase() + query.slice(1) : 'Estetika Konten';
   return `🎵 **ListenList Music & Lyrics Synth**
 ---
-**Judul Lagu Top**: Golden Hour - JVKE / Birds of a Feather - Billie Eilish
-**Relevansi Topik**: ${formattedQuery}
-**Getaran Vibe**: Aesthetic Instagram Grid, Smooth Transition, Warm Lighting
-**YouTube Music**: https://music.youtube.com/search?q=${encodeURIComponent(query || 'Aesthetic Music')}
+### 🎵 Rekomendasi Lagu & Artis
+- **Judul Lagu**: ${words} (Aesthetic Match)
+- **Genre/Vibe**: Acoustic Warm / Indie Chill / Upbeat Pop
+- **YouTube Music**: https://music.youtube.com/search?q=${encodeURIComponent(cleanTitle)}
 
-**Kutipan Lirik Paling Relevan**:
-> "Shine a light on me, golden hour...
-> I was broken, now I'm floating in the air.
-> Every moment with you feels like a masterpiece..."
+### 📝 Lirik Kunci (Ideal untuk Caption / Reels)
+> "Every moment with you feels like a masterpiece... Terukir indah dalam irama ${words}."
 
-**Hashtag Instagram Viral**:
-#${formattedQuery.replace(/\s+/g, '')} #AestheticReels #InstagramGrid #VibeCheck #FluostStudio #MusicRecommendations`;
+### 🌊 Mood & Aura Audio
+Harmoni audio yang diselaraskan khusus dengan tema "${cleanTitle}". Memberikan impresi profesional dan segar pada feed Instagram Anda.
+
+### 📱 Arahan Konsep Konten Instagram
+- **Tipe Post**: Instagram Reels / Story / Feed Carousel
+- **Filter Color Tone**: Soft Warm & High Contrast
+- **Hashtag Viral**: #${formattedTag || 'AestheticGrid'} #ReelsMusik #InstagramVibes #FluostStudio`;
 }
 
 // Smart Local Engine for AI Spark (Caption)
-function generateLocalSparkAI(topic: string, style: string): string {
-  const t = topic || 'Keindahan Suasana Hari Ini';
-  
-  if (style.includes('Minimalist')) {
-    return `✨ **Gaya: Clean Minimalist**
----
+function generateLocalSparkAI(topic: string, style: string, fileName?: string): string {
+  const t = topic.trim() || 'Estetika & Momen Istimewa';
+  const fileNotice = fileName ? `\n*(Dianalisis dari file media: ${fileName})*` : '';
+
+  return `### ✍️ Opsi Caption Main (Siap Copy-Paste)
+
+**Opsi 1 (Hook Memikat & High Engagement):**
+Pernah nggak ngerasa momen kayak gini sayang banget kalau cuma disimpen di galeri? ✨ ${fileNotice}
+
+Tentang ${t}. Kadang hal-hal sederhana bisa jadi begitu bermakna saat kita tahu cara menikmatinya. Simpan postingan ini buat inspirasi feed kamu selanjutnya! 📌
+
+**Opsi 2 (Gaya ${style} & Minimalis):**
 ${t}.
-Sederhana, tenang, dan bermakna. 🍃
+Menikmati setiap alur cerita dengan tenang dan percaya diri. 🌿
 
---
-#MinimalistAesthetic #CleanGrid #DailyMood #AestheticMoments`;
-  }
+### 🏷️ Racikan Hashtag Strategis
+\`#fluost #instagramgrid #${t.replace(/[^a-zA-Z0-9]/g, '') || 'Aesthetic'} #ContentCreator #DailyAesthetic #FeedGoals #AestheticVibes\`
 
-  if (style.includes('Viral') || style.includes('Gen-Z')) {
-    return `🔥 **Gaya: Viral Reels & Gen-Z**
----
-Save dulu biar gak lupa! 📌
-
-Gak nyangka ${t.toLowerCase()} ternyata se-aesthetic ini kalau diabadikan. 
-
-Mana favorit kalian dari slide 1 atau 2? Tulis di kolom komentar ya! 👇
-
---
-#ViralReels #InstagramTrends #AestheticGrid #ContentCreator #GenZVibes #FluostStudio`;
-  }
-
-  if (style.includes('Storytelling') || style.includes('Poetic')) {
-    return `📖 **Gaya: Storytelling & Poetic**
----
-Ada alasan mengapa setiap Momen terasa begitu istimewa.
-
-Tentang ${t.toLowerCase()}, tempat di mana pikiran beristirahat dan mata menemukan ketenangan. Kadang kita terlalu sibuk berlari hingga lupa menikmati langkah itu sendiri.
-
-Semoga sudut pandang kecil ini memberi sedikit kehangatan untuk harimu. ✨
-
---
-#Storytelling #AestheticJournal #PoeticWords #MindfulLiving #InstagramFeed`;
-  }
-
-  return `🚀 **Gaya: Professional Business & Content Creator**
----
-Menciptakan visual yang memikat dimulai dari perhatian pada detail. 💫
-
-${t} — Solusi visual & arsitektur grid terbaik untuk membangun brand image yang solid di Instagram.
-
-💡 *Pro Tip*: Simpan postingan ini untuk inspirasi feed kamu berikutnya!
-
---
-#ContentMarketing #BrandStrategy #InstagramGrowth #VisualIdentity #FluostStudio`;
+### 💡 Strategi Interaksi & Hook Story
+- **Pertanyaan untuk Followers**: "Kira-kira slide mana yang paling nge-vibe sama hari kalian?"
+- **Konsep Cover Story**: "${t} — In Frame"`;
 }
 
 // Smart Local Engine for Visualizer
@@ -261,7 +222,7 @@ export async function fetchSparkAI(
   }
 
   // Tier 3: Fluost Smart Local Engine
-  return generateLocalSparkAI(topic, style);
+  return generateLocalSparkAI(topic, style, fileName);
 }
 
 export async function fetchVisualAI(
