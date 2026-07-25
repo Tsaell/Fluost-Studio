@@ -7,6 +7,7 @@ import { fetchSparkAI } from '../lib/geminiClient';
 interface AiSparkProps {
   onShowModal: (title: string, body: string) => void;
   customApiKey: string;
+  onOpenApiModal?: () => void;
 }
 
 interface AttachedMedia {
@@ -18,7 +19,7 @@ interface AttachedMedia {
   isVideo: boolean;
 }
 
-export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey }) => {
+export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey, onOpenApiModal }) => {
   const [topic, setTopic] = useState('');
   const [style, setStyle] = useState('Klasik & Elegan');
   const [media, setMedia] = useState<AttachedMedia | null>(null);
@@ -264,10 +265,21 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey }) =
             )}
 
             {errorMessage && (
-              <div className="bg-red-500/10 border border-red-500/50 p-6 rounded-3xl text-center my-auto">
-                <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-2" />
-                <p className="text-red-400 font-bold text-sm">Gagal Mensintesis Teks</p>
-                <p className="text-red-300/80 text-xs mt-1">{errorMessage}</p>
+              <div className="bg-red-500/10 border border-red-500/50 p-6 rounded-3xl text-center my-auto space-y-3">
+                <AlertTriangle className="w-10 h-10 text-red-500 mx-auto" />
+                <div>
+                  <p className="text-red-400 font-bold text-sm">Gagal Mensintesis Teks</p>
+                  <p className="text-red-300/80 text-xs mt-1">{errorMessage}</p>
+                </div>
+                {onOpenApiModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenApiModal}
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 mx-auto transition-all active:scale-95"
+                  >
+                    <span>🔑 Ambil / Masukkan API Key Gemini Gratis</span>
+                  </button>
+                )}
               </div>
             )}
 
