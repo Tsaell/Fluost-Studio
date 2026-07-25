@@ -290,20 +290,25 @@ body {
 }
 
 /* Panoramic Sky Override Rules for High Contrast & No Dark Gray Surfaces */
+[data-theme="sky"] {
+  --text-main: #011E2E; /* Ultra crisp deep navy font */
+  --text-muted: #023652; /* Clear bold navy text */
+}
+
 [data-theme="sky"] .fluost-input {
   background: #FFFFFF !important;
-  border: 1.5px solid rgba(2, 132, 199, 0.4) !important;
-  color: #022B42 !important;
-  font-weight: 600;
+  border: 1.5px solid rgba(2, 132, 199, 0.45) !important;
+  color: #011E2E !important;
+  font-weight: 700;
 }
 [data-theme="sky"] .fluost-input::placeholder {
-  color: #03527E !important;
-  opacity: 0.75;
+  color: #024368 !important;
+  opacity: 0.85;
 }
 [data-theme="sky"] .ice-badge {
   background: #FFFFFF !important;
-  border: 1.5px solid rgba(2, 132, 199, 0.4) !important;
-  color: #022B42 !important;
+  border: 1.5px solid rgba(2, 132, 199, 0.45) !important;
+  color: #011E2E !important;
   font-weight: 800;
 }
 [data-theme="sky"] .bg-zinc-900,
@@ -313,15 +318,31 @@ body {
 [data-theme="sky"] .bg-black\/60,
 [data-theme="sky"] .bg-black\/80,
 [data-theme="sky"] .bg-black\/40,
-[data-theme="sky"] .bg-black\/50 {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-  color: #022B42 !important;
-  border-color: rgba(2, 132, 199, 0.35) !important;
+[data-theme="sky"] .bg-black\/50,
+[data-theme="sky"] .bg-black\/20,
+[data-theme="sky"] .bg-black\/10 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  color: #011E2E !important;
+  border-color: rgba(2, 132, 199, 0.4) !important;
 }
 [data-theme="sky"] .text-zinc-400,
 [data-theme="sky"] .text-zinc-300,
-[data-theme="sky"] .text-zinc-200 {
-  color: #034061 !important;
+[data-theme="sky"] .text-zinc-200,
+[data-theme="sky"] .text-slate-400,
+[data-theme="sky"] .text-slate-300,
+[data-theme="sky"] .text-gray-400,
+[data-theme="sky"] .text-gray-300,
+[data-theme="sky"] .text-white\/80,
+[data-theme="sky"] .text-white\/70,
+[data-theme="sky"] .text-white\/60,
+[data-theme="sky"] .text-white\/90 {
+  color: #023652 !important;
+}
+[data-theme="sky"] .opacity-60,
+[data-theme="sky"] .opacity-70,
+[data-theme="sky"] .opacity-80 {
+  opacity: 0.92 !important;
+  color: #011E2E !important;
 }
 
 /* Classic White Override Rules for Solid Black Text & No Dark Gray Surfaces */
@@ -329,10 +350,11 @@ body {
   background: #FFFFFF !important;
   border: 1.5px solid #CBD5E1 !important;
   color: #000000 !important;
-  font-weight: 600;
+  font-weight: 700;
 }
 [data-theme="light"] .fluost-input::placeholder {
-  color: #475569 !important;
+  color: #334155 !important;
+  opacity: 0.9;
 }
 [data-theme="light"] .ice-badge {
   background: #F1F5F9 !important;
@@ -347,15 +369,56 @@ body {
 [data-theme="light"] .bg-black\/60,
 [data-theme="light"] .bg-black\/80,
 [data-theme="light"] .bg-black\/40,
-[data-theme="light"] .bg-black\/50 {
+[data-theme="light"] .bg-black\/50,
+[data-theme="light"] .bg-black\/20,
+[data-theme="light"] .bg-black\/10 {
   background-color: #FFFFFF !important;
   color: #000000 !important;
   border-color: #CBD5E1 !important;
 }
 [data-theme="light"] .text-zinc-400,
 [data-theme="light"] .text-zinc-300,
-[data-theme="light"] .text-zinc-200 {
-  color: #1E293B !important;
+[data-theme="light"] .text-zinc-200,
+[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-slate-300,
+[data-theme="light"] .text-white\/80,
+[data-theme="light"] .text-white\/70,
+[data-theme="light"] .text-white\/60 {
+  color: #0f172a !important;
+}
+
+/* Force solid white text on primary action buttons across ALL themes */
+.fluost-btn,
+.fluost-btn *,
+.bg-\[\#3D5AFE\],
+.bg-\[\#3D5AFE\] *,
+.bg-gradient-to-r,
+.bg-gradient-to-r *,
+.bg-gradient-to-tr,
+.bg-gradient-to-tr * {
+  color: #ffffff !important;
+}
+
+/* Nature Theme Overrides */
+[data-theme="nature"] {
+  --text-main: #0D3811;
+  --text-muted: #1B5E20;
+}
+[data-theme="nature"] .fluost-input {
+  background: #FFFFFF !important;
+  border: 1.5px solid rgba(76, 175, 80, 0.4) !important;
+  color: #0D3811 !important;
+}
+
+/* Sunset Theme Overrides */
+[data-theme="sunset"] {
+  --text-main: #3B0954;
+  --text-muted: #5C0A38;
+}
+[data-theme="sunset"] .fluost-input {
+  background: #FFFFFF !important;
+  border: 1.5px solid rgba(255, 82, 82, 0.4) !important;
+  color: #3B0954 !important;
 }
 
 /* Scrollbars */

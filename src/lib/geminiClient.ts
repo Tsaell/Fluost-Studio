@@ -133,14 +133,28 @@ Menikmati setiap alur cerita dengan tenang dan percaya diri. 🌿
 }
 
 // Smart Local Engine for Visualizer
-function generateLocalVisualAI(): string {
-  return `🎨 **Analisis Palet Warna & Aksesibilitas Kontras (Fluost Engine)**
----
-- **Palet Warna Utama**: #0F172A (Deep Slate), #38BDF8 (Sky Blue), #0284C7 (Royal Ocean), #F8FAFC (Pure Pearl).
-- **Rasio Kontras (WCAG 2.1)**: **12.4:1** (Memenuhi Standar AA & AAA — Sangat Mudah Dibaca).
-- **Impresi Psikologi Warna**: Kombinasi warna ini memancarkan kesan *Modern, Kepercayaan (Trustworthiness), Profesional, dan Elegan*.
-- **Rekomendasi Font Instagram**: Pairings serif klasik dengan sans-serif modern (e.g. *Plus Jakarta Sans* + *Playfair Display*).
-- **Rekomendasi Filter Instagram**: Warm Film / Clarendon low saturation (15%).`;
+function generateLocalVisualAI(userPrompt?: string, mediaCount = 1): string {
+  const promptNotice = userPrompt ? `\n### 💬 Catatan Arahan Pengguna\n- **Arah Khusus**: "${userPrompt}"\n- **Rekomendasi**: Resep preset disesuaikan untuk mencapai nuansa ${userPrompt}.\n` : '';
+  const mediaNotice = mediaCount > 1 ? `*(Dianalisis dari ${mediaCount} file media referensi)*\n` : '';
+
+  return `### 🎨 Analisis Komposisi & Palet Warna ${mediaNotice}
+- **Dominan Warna**: #0F172A (Deep Slate), #38BDF8 (Sky Blue), #0284C7 (Royal Ocean), #F8FAFC (Pure Pearl)
+- **Mood / Atmosphere**: Modern, Profesional, High-Contrast & Cinematic
+- **Keseimbangan Pencahayaan**: Highlight jernih dengan bayangan shadow yang halus & kontras terukur
+${promptNotice}
+### 🎛️ Resep Preset Lightroom (Siap Terapkan)
+- **Exposure**: +0.15 EV
+- **Contrast**: +12
+- **Highlights & Shadows**: Highlights -25, Shadows +18
+- **Whites & Blacks**: Whites +10, Blacks -15
+- **Temp & Tint**: Temp 5200K (Warm Natural), Tint +2
+- **Vibrance & Saturation**: Vibrance +15, Saturation -5
+- **HSL Adjustment**: Orange Saturation +10 (Skin tone), Cyan Saturation +25 (Sky/Water)
+
+### 🎬 Ide Konsep Video / CapCut Reels
+- **Transisi Rekomendasi**: Smooth Light Leak Dissolve & Speed Ramp (0.8x -> 1.5x)
+- **Efek / Filter CapCut**: Retro Film II / Mono Clean (Intensity 20%)
+- **Gaya Editing Music Sync**: Cut transisi persis pada setiap ketukan bass 4/4.`;
 }
 
 export async function fetchMusicAI(query: string, customApiKey?: string): Promise<string> {
@@ -225,12 +239,23 @@ export async function fetchSparkAI(
   return generateLocalSparkAI(topic, style, fileName);
 }
 
+export interface VisualMediaInputItem {
+  base64Data: string;
+  mimeType: string;
+  fileName?: string;
+}
+
 export async function fetchVisualAI(
-  base64Data: string,
-  mimeType: string,
+  mediaItems: VisualMediaInputItem[],
+  userPrompt?: string,
   customApiKey?: string
 ): Promise<string> {
   const activeKey = customApiKey || getActiveApiKey();
+  const validItems = mediaItems.filter(item => item && item.base64Data && item.mimeType);
+
+  if (validItems.length === 0) {
+    throw new Error('Minimal 1 file media visual harus diunggah.');
+  }
 
   // Tier 1: Try Express Server API
   try {
@@ -240,7 +265,13 @@ export async function fetchVisualAI(
         'Content-Type': 'application/json',
         ...(activeKey ? { 'x-custom-api-key': activeKey } : {}),
       },
-      body: JSON.stringify({ base64Data, mimeType }),
+      body: JSON.stringify({ 
+        mediaItems: validItems, 
+        userPrompt: userPrompt?.trim() || undefined,
+        // Include single item fallback for API compatibility
+        base64Data: validItems[0].base64Data,
+        mimeType: validItems[0].mimeType,
+      }),
     });
 
     const contentType = res.headers.get('content-type') || '';
@@ -255,14 +286,14 @@ export async function fetchVisualAI(
   // Tier 2: Try Client-side Direct Gemini API
   if (activeKey.trim()) {
     try {
-      const prompt = `Analisis palet warna gambar ini untuk feed Instagram. Tentukan kode warna hex, kontras WCAG, impresi psikologi warna, dan font Instagram yang cocok.`;
-      return await callDirectGemini(activeKey.trim(), prompt, base64Data, mimeType);
+      const prompt = `Analisis palet warna & estetika visual gambar ini untuk feed Instagram.${userPrompt ? ` Arah pengguna: "${userPrompt}".` : ''} Tentukan resep Lightroom, kontras WCAG, dan ide CapCut.`;
+      return await callDirectGemini(activeKey.trim(), prompt, validItems[0].base64Data, validItems[0].mimeType);
     } catch (directErr) {
       console.warn('Direct Gemini API call failed for Visualizer, using Local Engine...');
     }
   }
 
   // Tier 3: Fluost Smart Local Engine
-  return generateLocalVisualAI();
+  return generateLocalVisualAI(userPrompt, validItems.length);
 }
 

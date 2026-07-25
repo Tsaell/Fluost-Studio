@@ -23,8 +23,8 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 20 * 1024 * 1024) {
-      onShowModal('Ukuran File Terlalu Besar', 'Maksimal ukuran media adalah 20MB.');
+    if (file.size > 50 * 1024 * 1024) {
+      onShowModal('Ukuran File Terlalu Besar', 'Maksimal ukuran media adalah 50MB.');
       return;
     }
 

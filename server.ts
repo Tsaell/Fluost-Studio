@@ -6,7 +6,7 @@ import { GoogleGenAI } from '@google/genai';
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '25mb' }));
+app.use(express.json({ limit: '50mb' }));
 
 // Helper function to get GoogleGenAI client
 function getGenAIClient(customApiKey?: string | string[]) {
@@ -175,23 +175,36 @@ Format Output (Gunakan Markdown yang rapi):
 // API: Visualost (Media Visual Analyzer & Preset Generator)
 app.post('/api/gemini/analyze-media', async (req, res) => {
   try {
-    const { base64Data, mimeType } = req.body;
-    if (!base64Data || !mimeType) {
-      return res.status(400).json({ error: 'Data gambar base64 & mimeType diperlukan.' });
+    const { base64Data, mimeType, mediaItems, userPrompt } = req.body;
+
+    // Normalizing media items
+    let itemsToProcess: Array<{ base64Data: string; mimeType: string; fileName?: string }> = [];
+    if (Array.isArray(mediaItems) && mediaItems.length > 0) {
+      itemsToProcess = mediaItems.filter(item => item && item.base64Data && item.mimeType);
+    } else if (base64Data && mimeType) {
+      itemsToProcess = [{ base64Data, mimeType }];
+    }
+
+    if (itemsToProcess.length === 0) {
+      return res.status(400).json({ error: 'Minimal 1 data gambar/video base64 & mimeType diperlukan.' });
     }
 
     const customKey = req.headers['x-custom-api-key'];
     const ai = getGenAIClient(customKey);
 
+    const mediaCount = itemsToProcess.length;
     const prompt = `Anda adalah pakar Colorist, Visual Art Director & Master Lightroom / CapCut dari Fluost Studio.
-Analisis gambar ini secara mendalam dan berikan resep color grading serta panduan estetika visual.
+${userPrompt ? `Arah/Instruksi Khusus Pengguna: "${userPrompt}"\n` : ''}
+${mediaCount > 1 ? `Pengguna melampirkan ${mediaCount} buah media visual sebagai referensi/materi pembedahan.` : ''}
+
+Analisis ${mediaCount > 1 ? 'seluruh gambar/media yang dilampirkan ini' : 'gambar ini'} secara mendalam dan berikan resep color grading serta panduan estetika visual${userPrompt ? ' sesuai dengan arahan pengguna' : ''}.
 
 Berikan analisis dalam format Markdown berikut:
 ### 🎨 Analisis Komposisi & Palet Warna
 - **Dominan Warna**: [Sebutkan 3-4 warna utama]
 - **Mood / Atmosphere**: [Suasana emosional gambar]
 - **Keseimbangan Pencahayaan**: [Highlights, shadows, dan kontras]
-
+${userPrompt ? `\n### 💬 Jawaban atas Arahan Khusus\n- [Penjelasan & rekomendasi spesifik menjawab: "${userPrompt}"]\n` : ''}
 ### 🎛️ Resep Preset Lightroom (Siap Terapkan)
 - **Exposure**: [Rekomendasi nilai +/-]
 - **Contrast**: [Nilai +/-]
@@ -206,14 +219,16 @@ Berikan analisis dalam format Markdown berikut:
 - **Efek / Filter CapCut**: [Nama efek yang serasi]
 - **Gaya Editing Music Sync**: [Saran potongan klip sesuai beat]`;
 
-    const imagePart = {
+    const parts: any[] = itemsToProcess.map((item) => ({
       inlineData: {
-        mimeType,
-        data: base64Data,
+        mimeType: item.mimeType,
+        data: item.base64Data,
       },
-    };
+    }));
 
-    const resultText = await generateWithFallback(ai, { parts: [imagePart, { text: prompt }] });
+    parts.push({ text: prompt });
+
+    const resultText = await generateWithFallback(ai, { parts });
 
     res.json({ result: resultText });
   } catch (error: any) {

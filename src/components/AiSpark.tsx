@@ -39,11 +39,8 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, onOpenApiModal })
   const processFile = async (file: File) => {
     const isVideo = file.type.startsWith('video/');
 
-    if (isVideo && file.size > 10 * 1024 * 1024) {
-      onShowModal('Ukuran File Besar', 'Maksimal ukuran video adalah 10MB agar tidak memberatkan device.');
-      return;
-    } else if (!isVideo && file.size > 20 * 1024 * 1024) {
-      onShowModal('Ukuran File Besar', 'Maksimal ukuran foto adalah 20MB.');
+    if (file.size > 50 * 1024 * 1024) {
+      onShowModal('Ukuran File Besar', 'Maksimal ukuran file adalah 50MB.');
       return;
     }
 

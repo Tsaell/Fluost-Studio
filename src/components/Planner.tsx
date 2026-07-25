@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import { User } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, Plus, Lightbulb, Layers, CheckCircle2, Trash2, CheckSquare, HardDrive, ExternalLink, CloudUpload } from 'lucide-react';
-import { saveUserDataToCloud } from '../lib/firebase';
-import { createGoogleCalendarEvent, createGoogleTask, saveFileToGoogleDrive, triggerGoogleOAuthFlow } from '../lib/googleAuth';
+import { Calendar, Plus, Lightbulb, Layers, CheckCircle2, Trash2, CheckSquare, HardDrive } from 'lucide-react';
+import { 
+  saveUserDataToCloud, 
+  googleSignIn, 
+  createGoogleCalendarEvent, 
+  createGoogleTask, 
+  saveFileToGoogleDrive 
+} from '../lib/firebase';
 
 interface PlannerProps {
   onShowModal: (title: string, body: string) => void;
@@ -88,26 +93,36 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
   };
 
   // Helper for triggering OAuth if missing real token
-  const handleOAuthConnectPrompt = async () => {
+  const handleOAuthConnectPrompt = async (): Promise<string | null> => {
     try {
       setIsSyncing(true);
-      const { profile } = await triggerGoogleOAuthFlow();
-      onShowModal(
-        'Google Workspace Terhubung',
-        `Akses Google Calendar, Tasks, dan Drive telah aktif untuk akun ${profile.displayName} (${profile.email}). Silakan coba lagi tombol aksi Anda!`
-      );
+      const res = await googleSignIn();
+      if (res.user && res.accessToken && !res.accessToken.startsWith('mock-')) {
+        onShowModal(
+          'Google Workspace Terhubung',
+          `Akses Google Calendar, Tasks, dan Drive telah aktif untuk ${res.user.displayName || res.user.email}. Silakan coba kembali aksi Anda!`
+        );
+        return res.accessToken;
+      } else if (res.isDemoMode) {
+        onShowModal(
+          'Mode Preview Aset',
+          'Login popup Google diblokir oleh kebijakan keamanan domain browser/iframe. Untuk menguji integrasi Google Calendar, Tasks & Drive dengan akun asli, silakan buka aplikasi di tab baru.'
+        );
+      }
     } catch (err: any) {
       onShowModal('Login Google Dibatalkan', err.message || 'Harap izinkan popup browser untuk login Google Workspace.');
     } finally {
       setIsSyncing(false);
     }
+    return null;
   };
 
   // Google Calendar Integration
   const handleAddToCalendar = async (card: PlannerCard) => {
-    if (!accessToken || accessToken.startsWith('mock-')) {
-      await handleOAuthConnectPrompt();
-      return;
+    let activeToken = accessToken;
+    if (!activeToken || activeToken.startsWith('mock-')) {
+      activeToken = await handleOAuthConnectPrompt();
+      if (!activeToken) return;
     }
 
     try {
@@ -118,7 +133,7 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
       const endTomorrow = new Date(tomorrow);
       endTomorrow.setHours(11, 0, 0, 0);
 
-      await createGoogleCalendarEvent(accessToken, {
+      await createGoogleCalendarEvent(activeToken, {
         summary: `[Fluost Studio] Posting: ${card.title}`,
         description: `Tag: ${card.tag}\nDeskripsi: ${card.description}`,
         startIso: tomorrow.toISOString(),
@@ -142,14 +157,15 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
 
   // Google Tasks Integration
   const handleAddToTasks = async (card: PlannerCard) => {
-    if (!accessToken || accessToken.startsWith('mock-')) {
-      await handleOAuthConnectPrompt();
-      return;
+    let activeToken = accessToken;
+    if (!activeToken || activeToken.startsWith('mock-')) {
+      activeToken = await handleOAuthConnectPrompt();
+      if (!activeToken) return;
     }
 
     try {
       setIsSyncing(true);
-      await createGoogleTask(accessToken, {
+      await createGoogleTask(activeToken, {
         title: `Fluost Content: ${card.title} (${card.tag})`,
         notes: card.description,
       });
@@ -171,9 +187,10 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
 
   // Google Drive Integration
   const handleExportToDrive = async () => {
-    if (!accessToken || accessToken.startsWith('mock-')) {
-      await handleOAuthConnectPrompt();
-      return;
+    let activeToken = accessToken;
+    if (!activeToken || activeToken.startsWith('mock-')) {
+      activeToken = await handleOAuthConnectPrompt();
+      if (!activeToken) return;
     }
 
     try {
@@ -182,7 +199,7 @@ export const Planner: React.FC<PlannerProps> = ({ onShowModal, user, accessToken
         cards.map((c, i) => `${i + 1}. [${c.column.toUpperCase()}] ${c.title} (${c.tag})\n   Deskripsi: ${c.description}\n`).join('\n');
 
       const fileName = `Fluost_Planner_${Date.now()}.txt`;
-      await saveFileToGoogleDrive(accessToken, fileName, reportContent, 'text/plain');
+      await saveFileToGoogleDrive(activeToken, fileName, reportContent, 'text/plain');
 
       onShowModal(
         'Tersimpan di Google Drive',
