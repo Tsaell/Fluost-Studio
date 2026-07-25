@@ -2,6 +2,8 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getAuth, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider, 
   onAuthStateChanged, 
   signOut, 
@@ -27,6 +29,18 @@ let cachedAccessToken: string | null = null;
 export const initAuthListener = (
   onUserChanged: (user: User | null, token: string | null) => void
 ) => {
+  // Check for redirect result first
+  getRedirectResult(auth).then((result) => {
+    if (result) {
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential?.accessToken) {
+        cachedAccessToken = credential.accessToken;
+      }
+    }
+  }).catch((error) => {
+    console.error('Redirect sign-in error:', error);
+  });
+
   return onAuthStateChanged(auth, (user) => {
     if (user) {
       onUserChanged(user, cachedAccessToken);
@@ -37,7 +51,7 @@ export const initAuthListener = (
   });
 };
 
-export const googleSignIn = async (): Promise<{ user: User; accessToken: string }> => {
+export const googleSignIn = async (): Promise<{ user: User | null; accessToken: string }> => {
   try {
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
@@ -50,7 +64,9 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
     console.error('Google Sign-in error:', error);
     let readableMsg = error.message || 'Gagal melakukan login dengan Google.';
     if (error?.code === 'auth/popup-blocked') {
-      readableMsg = 'Pop-up browser diblokir. Harap izinkan pop-up (pop-up blocker) pada browser Anda untuk login Google.';
+      console.warn('Popup blocked, attempting redirect sign-in...');
+      await signInWithRedirect(auth, provider);
+      return { user: null, accessToken: '' }; // Will reload page
     } else if (error?.code === 'auth/unauthorized-domain') {
       readableMsg = `Domain web saat ini (${window.location.hostname}) belum terdaftar. Tambahkan domain ini di Firebase Console -> Authentication -> Settings -> Authorized Domains.`;
     } else if (error?.code === 'auth/popup-closed-by-user') {

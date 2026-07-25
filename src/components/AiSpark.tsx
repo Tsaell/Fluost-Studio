@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Wand2, Dna, AlertTriangle, Copy, Check, Upload, Image, Film, X, FileCheck } from 'lucide-react';
 import { ThemeLoader } from './ThemeLoader';
 import { fetchSparkAI } from '../lib/geminiClient';
+import { compressImage, readFileAsBase64 } from '../lib/imageUtils';
 
 interface AiSparkProps {
   onShowModal: (title: string, body: string) => void;
@@ -36,18 +37,25 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey, onO
     }
   };
 
-  const processFile = (file: File) => {
-    if (file.size > 25 * 1024 * 1024) {
-      onShowModal('Ukuran File Besar', 'Maksimal ukuran file foto/video adalah 25MB.');
+  const processFile = async (file: File) => {
+    const isVideo = file.type.startsWith('video/');
+
+    if (isVideo && file.size > 10 * 1024 * 1024) {
+      onShowModal('Ukuran File Besar', 'Maksimal ukuran video adalah 10MB agar tidak memberatkan device.');
+      return;
+    } else if (!isVideo && file.size > 20 * 1024 * 1024) {
+      onShowModal('Ukuran File Besar', 'Maksimal ukuran foto adalah 20MB.');
       return;
     }
 
-    const isVideo = file.type.startsWith('video/');
-    const reader = new FileReader();
+    try {
+      let dataUrl: string;
+      if (isVideo) {
+        dataUrl = await readFileAsBase64(file);
+      } else {
+        dataUrl = await compressImage(file, 800, 800, 0.7);
+      }
 
-    reader.onload = (evt) => {
-      const dataUrl = evt.target?.result as string;
-      if (!dataUrl) return;
       const base64Data = dataUrl.split(',')[1];
 
       setMedia({
@@ -59,10 +67,11 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, customApiKey, onO
         isVideo,
       });
 
-      onShowModal('Media Terpasang', `File ${isVideo ? 'video' : 'foto'} "${file.name}" berhasil diunggah.`);
-    };
-
-    reader.readAsDataURL(file);
+      onShowModal('Media Terpasang', `File ${isVideo ? 'video' : 'foto'} "${file.name}" berhasil disiapkan.`);
+    } catch (error) {
+      console.error('Error processing file', error);
+      onShowModal('Gagal', 'Terjadi kesalahan saat memproses media.');
+    }
   };
 
   const removeMedia = () => {

@@ -22,32 +22,32 @@ export const ThemeBackground: React.FC<ThemeBackgroundProps> = ({ currentTheme }
           <motion.div
             animate={{ x: ['-30%', '110%'] }}
             transition={{ duration: 32, repeat: Infinity, ease: 'linear' }}
-            className="absolute top-6 left-0 opacity-80 flex gap-20 transform-gpu"
+            className="absolute top-6 left-0 opacity-80 flex gap-20 transform-gpu will-change-transform"
           >
-            <div className="w-80 h-28 bg-white/90 rounded-full shadow-[0_15px_40px_rgba(255,255,255,0.9)] blur-[2px]" />
-            <div className="w-[28rem] h-36 bg-sky-50/80 rounded-full shadow-[0_20px_50px_rgba(255,255,255,0.95)] blur-[3px]" />
-            <div className="w-72 h-24 bg-white/85 rounded-full shadow-[0_10px_35px_rgba(255,255,255,0.9)] blur-[1px]" />
+            <div className="w-80 h-28 bg-white/90 rounded-full" />
+            <div className="w-[28rem] h-36 bg-sky-50/80 rounded-full" />
+            <div className="w-72 h-24 bg-white/85 rounded-full" />
           </motion.div>
 
           {/* Cloud Layer 2: Big Mid Clouds (Right -> Left) */}
           <motion.div
             animate={{ x: ['110%', '-40%'] }}
             transition={{ duration: 48, repeat: Infinity, ease: 'linear' }}
-            className="absolute top-1/3 right-0 opacity-70 flex gap-28 transform-gpu"
+            className="absolute top-1/3 right-0 opacity-70 flex gap-28 transform-gpu will-change-transform"
           >
-            <div className="w-[34rem] h-44 bg-white/85 rounded-full blur-[4px] shadow-[0_20px_60px_rgba(255,255,255,1)]" />
-            <div className="w-96 h-32 bg-sky-100/90 rounded-full blur-[2px]" />
-            <div className="w-[30rem] h-40 bg-white/80 rounded-full blur-[3px]" />
+            <div className="w-[34rem] h-44 bg-white/85 rounded-full" />
+            <div className="w-96 h-32 bg-sky-100/90 rounded-full" />
+            <div className="w-[30rem] h-40 bg-white/80 rounded-full" />
           </motion.div>
 
           {/* Cloud Layer 3: Lower Drifting Cumulus (Left -> Right) */}
           <motion.div
             animate={{ x: ['-40%', '110%'] }}
             transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-            className="absolute bottom-12 left-0 opacity-60 flex gap-24 transform-gpu"
+            className="absolute bottom-12 left-0 opacity-60 flex gap-24 transform-gpu will-change-transform"
           >
-            <div className="w-[36rem] h-48 bg-white/95 rounded-full blur-[5px]" />
-            <div className="w-[28rem] h-36 bg-sky-50/90 rounded-full blur-[3px]" />
+            <div className="w-[36rem] h-48 bg-white/95 rounded-full" />
+            <div className="w-[28rem] h-36 bg-sky-50/90 rounded-full" />
           </motion.div>
 
           {/* Floating Puffy Cloud Vector Silhouettes */}

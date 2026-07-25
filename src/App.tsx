@@ -79,12 +79,15 @@ export default function App() {
   const handleGoogleLogin = async () => {
     try {
       const { user: loggedInUser, accessToken: token } = await googleSignIn();
-      setUser(loggedInUser);
-      setAccessToken(token);
-      showModal(
-        'Login Berhasil',
-        `Selamat datang kembali, ${loggedInUser.displayName || loggedInUser.email}! Integrasi Google Drive, Calendar, Tasks & Cloud telah aktif.`
-      );
+      if (loggedInUser) {
+        setUser(loggedInUser);
+        setAccessToken(token);
+        showModal(
+          'Login Berhasil',
+          `Selamat datang kembali, ${loggedInUser.displayName || loggedInUser.email}! Integrasi Google Workspace aktif.`
+        );
+      }
+      // If loggedInUser is null, it means a redirect sign-in was initiated
     } catch (err: any) {
       const isDomainError = err.message?.includes('belum terdaftar') || err.message?.includes('Authorized Domains');
       const domain = typeof window !== 'undefined' ? window.location.hostname : 'fluost-studio.vercel.app';

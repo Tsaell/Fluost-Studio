@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Eye, Upload, Palette, Microscope, AlertTriangle } from 'lucide-react';
 import { ThemeLoader } from './ThemeLoader';
 import { fetchVisualAI } from '../lib/geminiClient';
+import { compressImage } from '../lib/imageUtils';
 
 interface VisualostProps {
   onShowModal: (title: string, body: string) => void;
@@ -18,26 +19,25 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, customApiKey,
   const [resultText, setResultText] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 8 * 1024 * 1024) {
-        onShowModal('Ukuran File', 'Ukuran foto maksimal 8MB.');
+      if (file.size > 20 * 1024 * 1024) {
+        onShowModal('Ukuran File', 'Ukuran foto maksimal 20MB.');
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          const dataUrl = event.target.result as string;
-          setMediaPreview(dataUrl);
-          setBase64Data(dataUrl.split(',')[1]);
-          setMimeType(file.type);
-          setResultText(null);
-          setErrorMessage(null);
-        }
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedDataUrl = await compressImage(file, 800, 800, 0.7);
+        setMediaPreview(compressedDataUrl);
+        setBase64Data(compressedDataUrl.split(',')[1]);
+        setMimeType('image/jpeg'); // compressed image is jpeg
+        setResultText(null);
+        setErrorMessage(null);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        onShowModal('Gagal', 'Terjadi kesalahan saat memproses gambar.');
+      }
     }
   };
 
