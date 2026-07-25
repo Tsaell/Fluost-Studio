@@ -55,13 +55,8 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // On mount: check custom api key in localStorage and verify server health
+  // On mount: verify server health
   useEffect(() => {
-    const savedCustomKey = localStorage.getItem('fluost_custom_gemini_api_key');
-    if (savedCustomKey) {
-      setCustomApiKey(savedCustomKey);
-    }
-
     fetch('/api/health')
       .then((res) => res.json())
       .then((data) => {
