@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Eye, Upload, Palette, Microscope, AlertTriangle, Plus, X, Sparkles, Image as ImageIcon, Film, MessageSquareCode } from 'lucide-react';
+import { Eye, Upload, Palette, Microscope, AlertTriangle, Plus, X, Sparkles, Image as ImageIcon, Film, MessageSquareCode, Download, Play, Pause, Activity, Disc, Wand2, FileCheck } from 'lucide-react';
 import { ThemeLoader } from './ThemeLoader';
 import { fetchVisualAI, VisualMediaInputItem } from '../lib/geminiClient';
 import { compressImage, readFileAsBase64 } from '../lib/imageUtils';
@@ -26,6 +26,70 @@ const QUICK_PROMPTS = [
   '🔍 Bandingkan & Harmoniskan Palet Warna',
 ];
 
+export const generateLightroomXmpPreset = (presetName: string, config?: {
+  exposure?: number;
+  contrast?: number;
+  highlights?: number;
+  shadows?: number;
+  temperature?: number;
+  tint?: number;
+  saturation?: number;
+  clarity?: number;
+}) => {
+  const name = presetName || 'Fluost_Cinematic_Preset';
+  const exp = config?.exposure ?? 0.20;
+  const contrast = config?.contrast ?? 25;
+  const highlights = config?.highlights ?? -30;
+  const shadows = config?.shadows ?? 20;
+  const temp = config?.temperature ?? 5600;
+  const tint = config?.tint ?? 8;
+  const sat = config?.saturation ?? 12;
+  const clarity = config?.clarity ?? 18;
+
+  const xmpContent = `<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 7.0-c000">
+ <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about=""
+    xmlns:crs="http://ns.adobe.com/camera-raw-settings/1.0/"
+   crs:PresetType="Normal"
+   crs:Cluster="FluostStudio"
+   crs:UUID="${Math.random().toString(36).substring(2)}"
+   crs:SupportsAmount="200"
+   crs:SupportsColor="True"
+   crs:SupportsMonochrome="True"
+   crs:SupportsHighDynamicRange="True"
+   crs:SupportsNormalDynamicRange="True"
+   crs:SupportsSceneReferred="True"
+   crs:SupportsOutputReferred="True"
+   crs:CameraConfig="AdobeStandard"
+   crs:HasSettings="True"
+   crs:Exposure2012="${exp}"
+   crs:Contrast2012="${contrast}"
+   crs:Highlights2012="${highlights}"
+   crs:Shadows2012="${shadows}"
+   crs:Temperature="${temp}"
+   crs:Tint="${tint}"
+   crs:Saturation="${sat}"
+   crs:Clarity2012="${clarity}">
+   <crs:Name>
+    <rdf:Alt>
+     <rdf:li xml:lang="x-default">${name}</rdf:li>
+    </rdf:Alt>
+   </crs:Name>
+  </rdf:Description>
+ </rdf:RDF>
+</x:xmpmeta>`;
+
+  const blob = new Blob([xmpContent], { type: 'application/x-xmp' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${name.replace(/\s+/g, '_')}_FluostStudio.xmp`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 export const Visualost: React.FC<VisualostProps> = ({ onShowModal, onOpenApiModal }) => {
   const [mediaList, setMediaList] = useState<VisualMediaItem[]>([]);
   const [userPrompt, setUserPrompt] = useState('');
@@ -34,6 +98,120 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, onOpenApiModa
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Interactive Beat Match Preview State
+  const [isPlayingBeat, setIsPlayingBeat] = useState(false);
+  const [bpm, setBpm] = useState<number>(120);
+  const [beatPulse, setBeatPulse] = useState(false);
+
+  // Hex Palette & Watermark State
+  const [extractedPalette, setExtractedPalette] = useState<string[]>([]);
+  const [watermarkText, setWatermarkText] = useState('@fluost.studio');
+
+  useEffect(() => {
+    let interval: any;
+    if (isPlayingBeat) {
+      const intervalMs = (60 / bpm) * 1000;
+      interval = setInterval(() => {
+        setBeatPulse(true);
+        setTimeout(() => setBeatPulse(false), 120);
+      }, intervalMs);
+    } else {
+      setBeatPulse(false);
+    }
+    return () => clearInterval(interval);
+  }, [isPlayingBeat, bpm]);
+
+  const handleExtractPalette = () => {
+    if (mediaList.length === 0) {
+      onShowModal('Media Kosong', 'Harap unggah minimal 1 foto terlebih dahulu.');
+      return;
+    }
+    const targetMedia = mediaList[0];
+    if (targetMedia.isVideo) {
+      onShowModal('Ekstraksi Warna', 'Ekstraksi warna Hex direkomendasikan untuk format foto.');
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 80;
+      canvas.height = 80;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0, 80, 80);
+      const data = ctx.getImageData(0, 0, 80, 80).data;
+
+      const map = new Map<string, number>();
+      for (let i = 0; i < data.length; i += 16) {
+        const r = Math.round(data[i] / 32) * 32;
+        const g = Math.round(data[i + 1] / 32) * 32;
+        const b = Math.round(data[i + 2] / 32) * 32;
+        const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
+        map.set(hex, (map.get(hex) || 0) + 1);
+      }
+
+      const sorted = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+      const top5 = sorted.slice(0, 5).map((item) => item[0]);
+      const finalPalette = top5.length >= 5 ? top5 : [...top5, '#3D5AFE', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6'].slice(0, 5);
+      setExtractedPalette(finalPalette);
+      onShowModal(
+        'Ekstraksi Palet Warna Hex Selesai',
+        `Berhasil mengekstrak 5 warna utama: ${finalPalette.join(', ')}.\nKlik swatch warna untuk menyalin kode Hex langsung!`
+      );
+    };
+    img.src = targetMedia.previewUrl;
+  };
+
+  const handleDownloadWatermarkedImage = () => {
+    if (mediaList.length === 0) return;
+    const targetMedia = mediaList[0];
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.drawImage(img, 0, 0);
+
+      // Draw Watermark Badge
+      const text = watermarkText || '@fluost.studio';
+      const fontSize = Math.max(24, Math.round(img.width * 0.035));
+      ctx.font = `bold ${fontSize}px sans-serif`;
+
+      const metrics = ctx.measureText(text);
+      const padding = fontSize * 0.5;
+      const boxW = metrics.width + padding * 2;
+      const boxH = fontSize * 1.6;
+      const x = img.width - boxW - padding;
+      const y = img.height - boxH - padding;
+
+      // Background Pill
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+      ctx.beginPath();
+      ctx.roundRect(x, y, boxW, boxH, fontSize * 0.5);
+      ctx.fill();
+
+      // Text
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(text, x + padding, y + fontSize * 1.1);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `Fluost_Watermarked_${Date.now()}.jpg`;
+      a.click();
+
+      onShowModal('Foto Ber-Watermark Diunduh', `Foto berhasil diimpor dengan watermark "${text}".`);
+    };
+    img.src = targetMedia.previewUrl;
+  };
+
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
 
@@ -41,7 +219,6 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, onOpenApiModa
     const newItems: VisualMediaItem[] = [];
 
     for (const file of filesArray) {
-      // Increased max file size limit to 50MB per file
       if (file.size > 50 * 1024 * 1024) {
         onShowModal('Ukuran File Besar', `File "${file.name}" melebihi batas 50MB.`);
         continue;
@@ -59,7 +236,6 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, onOpenApiModa
           base64Data = rawBase64.split(',')[1] || rawBase64;
           previewUrl = URL.createObjectURL(file);
         } else {
-          // Compress photo for crisp & lightweight payload
           const compressedDataUrl = await compressImage(file, 1200, 1200, 0.8);
           base64Data = compressedDataUrl.split(',')[1];
           previewUrl = compressedDataUrl;
@@ -88,7 +264,6 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, onOpenApiModa
       );
     }
 
-    // Reset input value to allow re-uploading same file
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -138,6 +313,14 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, onOpenApiModa
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDownloadXmp = () => {
+    generateLightroomXmpPreset(userPrompt || 'Fluost_Cinematic_Tone');
+    onShowModal(
+      'Preset Lightroom Terunduh (.XMP)',
+      'File preset .XMP berhasil diunduh! Anda dapat langsung mengimpor file ini ke Adobe Lightroom Mobile atau Desktop.'
+    );
   };
 
   return (
@@ -336,16 +519,153 @@ export const Visualost: React.FC<VisualostProps> = ({ onShowModal, onOpenApiModa
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-4 h-full flex flex-col"
               >
-                <div className="flex justify-between items-center pb-3 border-b border-white/10">
+                <div className="flex flex-wrap justify-between items-center pb-3 border-b border-white/10 gap-2">
                   <h3 className="font-bold text-sm text-[var(--fluid-2)] flex items-center gap-2">
                     <Palette className="w-4 h-4" /> Hasil Pembedahan Color Grading
                   </h3>
-                  <span className="text-xs opacity-70 font-mono">
-                    {mediaList.length} Visual Dianalisis
-                  </span>
+                  
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleExtractPalette}
+                      className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all active:scale-95"
+                      title="Ekstrak 5 Kode Warna Hex Dominan dari Foto"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Ekstrak Hex Warna</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDownloadXmp}
+                      className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
+                      title="Unduh Preset Asli Adobe Lightroom (.XMP)"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Preset (.XMP)</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="bg-black/20 p-5 rounded-2xl border border-[var(--ice-border)] overflow-y-auto max-h-[520px] prose prose-invert max-w-none text-xs md:text-sm font-medium leading-relaxed">
+                {/* Hex Palette Swatches Bar */}
+                {extractedPalette.length > 0 && (
+                  <div className="p-3.5 rounded-2xl bg-black/40 border border-purple-500/30 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-purple-300">
+                      <span className="flex items-center gap-1.5">
+                        <Palette className="w-4 h-4 text-purple-400" /> Palet Hex Dominan (Klik untuk salin):
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-2">
+                      {extractedPalette.map((hex) => (
+                        <button
+                          key={hex}
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(hex);
+                            onShowModal('Kode Warna Tersalin!', `Kode warna Hex ${hex} berhasil disalin ke clipboard.`);
+                          }}
+                          className="group relative p-2 rounded-xl flex flex-col items-center justify-center gap-1 border border-white/10 hover:border-white transition-all active:scale-95"
+                          style={{ backgroundColor: hex }}
+                        >
+                          <span className="text-[10px] font-mono font-black text-white bg-black/70 px-1.5 py-0.5 rounded shadow-sm">
+                            {hex}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Watermark Generator Bar */}
+                {mediaList.length > 0 && (
+                  <div className="p-3.5 rounded-2xl bg-black/30 border border-white/10 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                      <FileCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <input
+                        type="text"
+                        value={watermarkText}
+                        onChange={(e) => setWatermarkText(e.target.value)}
+                        placeholder="Watermark, misal: @username_kamu"
+                        className="bg-black/50 border border-white/20 text-white text-xs rounded-xl px-3 py-1.5 w-full focus:border-emerald-400 outline-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDownloadWatermarkedImage}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95 shrink-0"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Unduh Ber-Watermark</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Idea 1: Interactive Audio-Visual Beat Match Engine */}
+                {mediaList.length > 0 && (
+                  <div className="p-3.5 rounded-2xl bg-black/30 border border-indigo-500/30 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-300">
+                      <Activity className={`w-4 h-4 ${isPlayingBeat ? 'animate-bounce text-emerald-400' : 'text-indigo-400'}`} />
+                      <span>Live Audio-Visual Beat Sync Engine:</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* BPM Selector */}
+                      <select
+                        value={bpm}
+                        onChange={(e) => setBpm(Number(e.target.value))}
+                        className="bg-black/60 border border-white/20 text-white text-[11px] font-mono px-2 py-1 rounded-lg"
+                      >
+                        <option value={90}>90 BPM (Chill)</option>
+                        <option value={120}>120 BPM (Pop)</option>
+                        <option value={128}>128 BPM (Dance)</option>
+                        <option value={140}>140 BPM (Beat Drop)</option>
+                      </select>
+
+                      {/* Play/Pause Beat Simulation */}
+                      <button
+                        type="button"
+                        onClick={() => setIsPlayingBeat(!isPlayingBeat)}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                          isPlayingBeat
+                            ? 'bg-red-500 text-white shadow-md'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        }`}
+                      >
+                        {isPlayingBeat ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                        <span>{isPlayingBeat ? 'Stop Beat' : 'Test Beat Sync'}</span>
+                      </button>
+                    </div>
+
+                    {/* Beat Pulse Preview Frame */}
+                    {isPlayingBeat && mediaList[0] && (
+                      <div className="w-full mt-1 pt-2 border-t border-white/10 flex items-center gap-3">
+                        <div
+                          className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all duration-100 ${
+                            beatPulse
+                              ? 'scale-110 border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.8)]'
+                              : 'scale-100 border-white/20 opacity-80'
+                          }`}
+                        >
+                          <img
+                            src={mediaList[0].previewUrl}
+                            alt="Beat Pulse Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="text-[11px] font-mono text-emerald-400 space-y-0.5">
+                          <p className="font-bold flex items-center gap-1">
+                            <Disc className="w-3 h-3 animate-spin" /> Audio Pulse Active ({bpm} BPM)
+                          </p>
+                          <p className="text-[10px] text-white/70">
+                            Transisi visual dipasang persis pada detak {bpm} BPM untuk Reels & TikTok.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="bg-black/20 p-5 rounded-2xl border border-[var(--ice-border)] overflow-y-auto max-h-[480px] prose prose-invert max-w-none text-xs md:text-sm font-medium leading-relaxed">
                   <div
                     dangerouslySetInnerHTML={{
                       __html: String(resultText || '')

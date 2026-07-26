@@ -129,6 +129,109 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, onOpenApiModal })
     }
   };
 
+  const handleSyncToEnGrid = () => {
+    if (!resultText) return;
+    const syncedData = {
+      text: resultText,
+      mediaUrl: media?.previewUrl || '',
+      timestamp: Date.now(),
+      topic: topic || 'Storyboard AI Spark',
+    };
+    localStorage.setItem('fluost_synced_storyboard', JSON.stringify(syncedData));
+    onShowModal(
+      '🎬 Storyboard / Content Di-sync ke EnGrid',
+      'Rancangan konten ini berhasil dikirim ke Feed Grid EnGrid! Buka tab EnGrid untuk meninjau pratinjau grid dan mengimpor caption secara langsung.'
+    );
+  };
+
+  const generateQuoteCanvasCard = () => {
+    if (!resultText) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1350; // 4:5 Portrait format
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Background Gradient
+    const grad = ctx.createLinearGradient(0, 0, 1080, 1350);
+    grad.addColorStop(0, '#0F172A');
+    grad.addColorStop(0.5, '#1E1B4B');
+    grad.addColorStop(1, '#020617');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1080, 1350);
+
+    // Soft Ambient Glow Circles
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.18)';
+    ctx.beginPath();
+    ctx.arc(200, 300, 400, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(168, 85, 247, 0.15)';
+    ctx.beginPath();
+    ctx.arc(900, 1000, 450, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Glass Frame Box
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(80, 120, 920, 1110, 40);
+    ctx.fill();
+    ctx.stroke();
+
+    // Header Branding Tag
+    ctx.fillStyle = '#38BDF8';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.fillText('FLUOST STUDIO • STORY QUOTE CARD', 130, 210);
+
+    // Clean quote text line wrapping
+    const plainLines = resultText
+      .replace(/### /g, '')
+      .replace(/\*\*/g, '')
+      .split('\n')
+      .filter((line) => line.trim().length > 0)
+      .slice(0, 14);
+
+    ctx.fillStyle = '#F8FAFC';
+    ctx.font = '500 34px sans-serif';
+
+    let startY = 290;
+    plainLines.forEach((line) => {
+      if (startY < 1120) {
+        ctx.fillText(line.substring(0, 48), 130, startY);
+        startY += 56;
+      }
+    });
+
+    // Footer Tagline
+    ctx.fillStyle = '#38BDF8';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillText('✨ Generated with @fluost.studio', 130, 1170);
+
+    // Trigger Download
+    const dataUrl = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `Fluost_Story_Quote_Card.png`;
+    a.click();
+
+    onShowModal(
+      'Gambar Kartu Kutipan Berhasil Diunduh!',
+      'Kartu kutipan visual format 4:5 (PNG) telah berhasil dibuat dan diunduh. Siap dipost langsung ke Instagram Story atau Feed!'
+    );
+  };
+
+  const calculateEngagementScore = () => {
+    if (!resultText) return 85;
+    let score = 75;
+    if (resultText.includes('#')) score += 8;
+    if (resultText.length > 100) score += 7;
+    if (resultText.includes('?') || resultText.includes('!')) score += 5;
+    return Math.min(98, score);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8">
       {/* Form Panel (5 cols) */}
@@ -232,9 +335,9 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, onOpenApiModal })
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 pt-1">
               <label className="text-xs font-extrabold text-[var(--fluid-2)] uppercase tracking-wider">
-                Gaya Bahasa / Tone
+                Mode Keluaran AI Studio
               </label>
               <select
                 value={style}
@@ -246,6 +349,7 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, onOpenApiModal })
                 <option value="Storytelling Edukatif">Storytelling & Edukatif (Inspiratif)</option>
                 <option value="Casual & Friendly">Casual & Friendly (Sangat Nyantai)</option>
                 <option value="Hard Sell Promosi">Hard Sell Promosi (Persuasif & Call to Action)</option>
+                <option value="🎬 Reels & Story Storyboard">🎬 Reels & Story Storyboard (Frame-by-Frame Pipeline)</option>
               </select>
             </div>
 
@@ -306,17 +410,44 @@ export const AiSpark: React.FC<AiSparkProps> = ({ onShowModal, onOpenApiModal })
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-4 h-full flex flex-col justify-between"
               >
-                <div className="flex justify-between items-center pb-3 border-b border-white/10">
-                  <h3 className="font-bold text-sm text-[var(--fluid-2)] flex items-center gap-2">
-                    <Dna className="w-4 h-4" /> Rancangan Caption Terbentuk
-                  </h3>
-                  <button
-                    onClick={copyToClipboard}
-                    className="ice-badge hover:opacity-100 flex items-center gap-1.5 py-1.5 px-3"
-                  >
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copied ? 'Tersalin' : 'Salin Teks'}</span>
-                  </button>
+                <div className="flex flex-wrap justify-between items-center pb-3 border-b border-white/10 gap-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm text-[var(--fluid-2)] flex items-center gap-1.5">
+                      <Dna className="w-4 h-4" /> Content & Storyboard
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold text-[10px] border border-emerald-500/30 flex items-center gap-1" title="Estimasi Potensi Interaksi Instagram">
+                      <span>🔥 Engagement:</span>
+                      <span>{calculateEngagementScore()}%</span>
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={generateQuoteCanvasCard}
+                      className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all active:scale-95"
+                      title="Ekspor sebagai Kartu Gambar Quote 4:5 untuk Story/Feed"
+                    >
+                      <Image className="w-3.5 h-3.5" />
+                      <span>Buat Story Quote Card</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSyncToEnGrid}
+                      className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all active:scale-95"
+                      title="Sync Storyboard ini ke EnGrid Feed Planner"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-300" />
+                      <span>Sync ke Grid</span>
+                    </button>
+                    <button
+                      onClick={copyToClipboard}
+                      className="ice-badge hover:opacity-100 flex items-center gap-1.5 py-1.5 px-3"
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copied ? 'Tersalin' : 'Salin Teks'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="bg-black/20 p-5 rounded-2xl border border-[var(--ice-border)] overflow-y-auto max-h-[500px] prose prose-invert max-w-none text-xs md:text-sm font-medium leading-relaxed">

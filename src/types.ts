@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ThemeMode = 'default' | 'light' | 'renaissance' | 'islamic' | 'sky' | 'atom' | 'dark' | 'cyberpunk' | 'nature' | 'monochrome' | 'sunset';
+export type ThemeMode = 'default' | 'blueen' | 'light' | 'renaissance' | 'islamic' | 'sky' | 'atom' | 'dark' | 'cyberpunk' | 'nature' | 'monochrome' | 'sunset';
 
 export type TabType = 'grid' | 'music' | 'ai' | 'assistant' | 'planner';
 

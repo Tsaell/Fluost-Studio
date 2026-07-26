@@ -16,7 +16,10 @@ import {
   Info,
   X,
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  Zap,
+  Clock,
+  Bot
 } from 'lucide-react';
 
 const WaveIceLogo = ({ className }: { className?: string }) => (
@@ -33,6 +36,13 @@ interface HeaderProps {
   setActiveTab: (tab: TabType) => void;
   currentTheme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
+  isSmartTheme: boolean;
+  onToggleSmartTheme: (enable?: boolean) => void;
+  smartThemeInfo: {
+    resolvedTheme: ThemeMode;
+    label: string;
+    timeRange: string;
+  };
   onOpenApiModal: () => void;
   hasApiKey: boolean;
   user: User | null;
@@ -45,6 +55,9 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   currentTheme,
   setTheme,
+  isSmartTheme,
+  onToggleSmartTheme,
+  smartThemeInfo,
   onOpenApiModal,
   hasApiKey,
   user,
@@ -53,6 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const tabs = [
     { id: 'grid', label: 'EnGrid', sub: 'Grid Slicer & Live Feed Simulator', desc: 'Pemotong grid Instagram presisi tinggi dengan simulasi umpan profil.', icon: Grid2X2, badge: 'Most Recommended!' },
+    { id: 'chat', label: 'AI Chat', sub: 'Gemini Chatbot & Search Grounding', desc: 'Chatbot multi-turn dengan sistem role, pencarian fakta Google, dan analisis foto/video.', icon: Bot, badge: 'New Multi-Role!' },
     { id: 'music', label: 'Audio', sub: 'ListenList Music Synthesis', desc: 'Sintesis frekuensi musik, lirik, dan atmosfer visual Instagram.', icon: Headphones, badge: 'Find your music!' },
     { id: 'ai', label: 'AI Spark', sub: 'Caption & Custom Media AI', desc: 'Racik caption, hashtag, dan analisis foto/video custom instan.', icon: Sparkles, badge: 'Make your caption!' },
     { id: 'assistant', label: 'Visualizer', sub: 'Aesthetic Palette & Contrast', desc: 'Analisis suhu warna, pencahayaan, dan keseimbangan visual foto.', icon: Eye, badge: 'Your editing assistant' },
@@ -68,15 +82,15 @@ export const Header: React.FC<HeaderProps> = ({
     },
     { 
       id: 'default', 
-      label: 'Blueen', 
-      color: 'bg-[#0B132B]',
-      desc: 'Tema cyber bernuansa biru deep space futuristik dengan aksen neon khas Fluost Studio.' 
+      label: 'Blueen v3.0 (Electric Cobalt)', 
+      color: 'bg-gradient-to-r from-[#3D5AFE] via-[#00E5FF] to-[#0A0F24] border border-[#00E5FF]/50',
+      desc: '⚡ Major Update: Atmosfer cyber electric cobalt & cyan aurora futuristik dengan laser photon beams, dual-layer refraction glass, dan efek glowing 60FPS.' 
     },
     { 
       id: 'light', 
-      label: 'Classic White', 
-      color: 'bg-slate-100',
-      desc: 'Tema serba putih bersih dengan font hitam pekat, kontras maksimal, dan permukaan yang jernih.' 
+      label: 'Classic White (Studio Modernist)', 
+      color: 'bg-white border-2 border-slate-300',
+      desc: '⚡ Major Update: Minimalisme porselen presisi tinggi dengan font hitam pekat, sinar prisma perak-indigo, dan geometri dual-shadow studio.' 
     },
     { 
       id: 'renaissance', 
@@ -290,6 +304,36 @@ export const Header: React.FC<HeaderProps> = ({
                 <Info className="w-3 h-3" /> Info Tema
               </button>
             </div>
+
+            {/* Smart Theme Auto Switch Button Banner */}
+            <button
+              onClick={() => onToggleSmartTheme()}
+              className={`w-full p-2.5 rounded-2xl border transition-all text-left flex items-center justify-between gap-2 shadow-sm mb-2 active:scale-95 ${
+                isSmartTheme
+                  ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-600 text-white border-white/40 shadow-indigo-500/20'
+                  : 'bg-[var(--ice-bg)] border-[var(--ice-border)] text-[var(--text-main)] hover:border-[#3D5AFE]'
+              }`}
+              title="Aktifkan Mode Smart Theme untuk otomatisasi berdasarkan jam lokal Anda"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={`p-1.5 rounded-xl shrink-0 ${isSmartTheme ? 'bg-white/20 text-amber-300' : 'bg-[#3D5AFE]/15 text-[#3D5AFE]'}`}>
+                  <Zap className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-black">Smart Theme</span>
+                    <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded shrink-0 ${isSmartTheme ? 'bg-emerald-400 text-slate-900' : 'bg-slate-500/20 opacity-70'}`}>
+                      {isSmartTheme ? 'Otomatis' : 'Off'}
+                    </span>
+                  </div>
+                  <p className={`text-[10px] font-medium leading-tight mt-0.5 truncate ${isSmartTheme ? 'text-sky-100' : 'opacity-70'}`}>
+                    {isSmartTheme ? smartThemeInfo.label : 'Adaptasi jam lokal & sistem'}
+                  </p>
+                </div>
+              </div>
+              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${isSmartTheme ? 'bg-emerald-400 shadow-[0_0_8px_#34D399]' : 'bg-slate-400/50'}`} />
+            </button>
+
             <div className="grid grid-cols-7 gap-1.5 p-2 rounded-2xl bg-[var(--ice-bg)] border border-[var(--ice-border)]">
               {themes.map((t) => (
                 <button
@@ -297,7 +341,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onClick={() => setTheme(t.id)}
                   title={`${t.label}: ${t.desc}`}
                   className={`w-full aspect-square rounded-xl ${t.color} border transition-all duration-200 flex items-center justify-center ${
-                    currentTheme === t.id
+                    !isSmartTheme && currentTheme === t.id
                       ? 'border-white scale-110 shadow-md ring-2 ring-[#3D5AFE]'
                       : 'border-white/30 opacity-70 hover:opacity-100 hover:scale-105'
                   }`}
@@ -308,8 +352,10 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Active Theme Description Box */}
             <div className="mt-2 p-2 rounded-2xl bg-[var(--ice-bg)] border border-[var(--ice-border)] text-xs space-y-1 shadow-sm">
               <div className="flex items-center justify-between text-[10px] font-extrabold tracking-wider text-[#3D5AFE]">
-                <span>{activeThemeObj.label}</span>
-                <span className="font-mono text-[9px] px-1.5 py-0.2 rounded bg-[#3D5AFE]/15 border border-[#3D5AFE]/30">Aktif</span>
+                <span>{isSmartTheme ? `⚡ Smart: ${activeThemeObj.label}` : activeThemeObj.label}</span>
+                <span className="font-mono text-[9px] px-1.5 py-0.2 rounded bg-[#3D5AFE]/15 border border-[#3D5AFE]/30">
+                  {isSmartTheme ? 'Auto Time' : 'Manual'}
+                </span>
               </div>
               <p className="text-[10px] leading-relaxed opacity-85 font-medium">
                 {activeThemeObj.desc}
@@ -421,8 +467,23 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[9px] font-mono font-black uppercase tracking-wider text-[#3D5AFE] shrink-0 pl-1 flex items-center gap-1">
               <Palette className="w-3 h-3" /> Tema UI:
             </span>
+
+            {/* Smart Theme Quick Toggle Button */}
+            <button
+              onClick={() => onToggleSmartTheme()}
+              title="Otomatiskan tema berdasarkan jam lokal Anda"
+              className={`shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-bold flex items-center gap-1.5 transition-all border ${
+                isSmartTheme
+                  ? 'bg-gradient-to-r from-indigo-600 to-sky-600 text-white border-white/80 shadow-md scale-105 ring-1 ring-sky-300'
+                  : 'bg-[var(--ice-bg)] border-[var(--ice-border)] opacity-80 hover:opacity-100'
+              }`}
+            >
+              <Zap className="w-3 h-3 text-amber-300 shrink-0" />
+              <span>Smart Auto</span>
+            </button>
+
             {themes.map((t) => {
-              const isCurrent = currentTheme === t.id;
+              const isCurrent = !isSmartTheme && currentTheme === t.id;
               return (
                 <button
                   key={t.id}
@@ -555,8 +616,40 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             <div className="space-y-2.5 relative z-10">
+              {/* Smart Theme Card Option */}
+              <div
+                onClick={() => {
+                  onToggleSmartTheme(true);
+                  setShowThemeGuideModal(false);
+                }}
+                className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                  isSmartTheme
+                    ? 'border-indigo-500 bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-sky-600/20 shadow-md ring-1 ring-indigo-400'
+                    : 'border-[var(--ice-border)] bg-[var(--ice-bg)] hover:border-[#3D5AFE]/50'
+                }`}
+              >
+                <div className="p-2 rounded-xl bg-gradient-to-tr from-indigo-500 to-sky-400 text-white shrink-0 mt-0.5 shadow-md">
+                  <Zap className="w-4 h-4 text-amber-300" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black tracking-wide flex items-center gap-1.5">
+                      <span>⚡ Smart Theme (Adaptasi Jam & Sistem)</span>
+                    </h4>
+                    {isSmartTheme && (
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500 text-white font-bold">
+                        Aktif Sekarang
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] opacity-85 mt-1 leading-relaxed font-medium">
+                    Otomatis menyesuaikan atmosfer UI berdasarkan jam lokal Anda: Pagi (Panoramic Sky), Siang (Classic White / Cyberpunk), Senja (Crimson Sunset), dan Malam (Authentic Dark).
+                  </p>
+                </div>
+              </div>
+
               {themes.map((t) => {
-                const isCurrent = currentTheme === t.id;
+                const isCurrent = !isSmartTheme && currentTheme === t.id;
                 return (
                   <div
                     key={t.id}

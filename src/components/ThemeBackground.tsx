@@ -12,7 +12,7 @@ export const ThemeBackground: React.FC<ThemeBackgroundProps> = ({ currentTheme }
       {/* Universal Soft Fluid Gradient (GPU Accelerated) */}
       <div className="fluost-fluid-bg" />
 
-      {/* SKY THEME: Continuous Ultra-Cloudy Floating Canvas */}
+      {/* SKY THEME: Continuous Ultra-Cloudy Floating Canvas & Sunbeams */}
       {currentTheme === 'sky' && (
         <div className="absolute inset-0 overflow-hidden bg-gradient-to-b from-[#38BDF8] via-[#7DD3FC] to-[#BAE6FD]">
           {/* Soft White-Blue Atmospheric Glow */}
@@ -50,14 +50,14 @@ export const ThemeBackground: React.FC<ThemeBackgroundProps> = ({ currentTheme }
             <div className="w-[28rem] h-36 bg-sky-50/90 rounded-full" />
           </motion.div>
 
-          {/* Floating Puffy Cloud Vector Silhouettes */}
+          {/* Floating Birds Silhouette */}
           <motion.div
-            animate={{ y: [-8, 8, -8], x: [0, 15, 0] }}
-            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute top-1/4 left-1/4 opacity-40 text-white"
+            animate={{ x: ['-10%', '110%'], y: [-10, 10, -10] }}
+            transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-1/5 left-0 opacity-50 text-sky-900"
           >
-            <svg className="w-48 h-32" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" />
+            <svg className="w-16 h-8" viewBox="0 0 50 25" fill="currentColor">
+              <path d="M0 12 Q 12 0 25 12 Q 38 0 50 12 Q 38 4 25 15 Q 12 4 0 12 Z" />
             </svg>
           </motion.div>
 
@@ -66,112 +66,374 @@ export const ThemeBackground: React.FC<ThemeBackgroundProps> = ({ currentTheme }
         </div>
       )}
 
-      {/* ATOM THEME: Orbiting Electrons & Energy Beams */}
+      {/* ATOM THEME: Orbiting Electrons & Particle Energy Beams */}
       {currentTheme === 'atom' && (
         <div className="absolute inset-0 overflow-hidden">
           {/* Cosmic Center Elliptical Orbital Ring 1 */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] border border-red-500/15 rounded-[100%] rotate-12">
-            <motion.div
-              animate={{ offsetDistance: ['0%', '100%'] }}
-              transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-              className="w-4 h-4 rounded-full bg-red-500 shadow-[0_0_15px_#EF4444]"
-              style={{
-                offsetPath: 'rect(0% 100% 100% 0% round 100%)',
-              }}
-            />
-          </div>
-
-          {/* Cosmic Center Elliptical Orbital Ring 2 */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] border border-blue-500/15 rounded-[100%] -rotate-25">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] border border-red-500/20 rounded-[100%] rotate-12">
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
               className="w-full h-full relative"
             >
-              <div className="absolute -top-2 left-1/2 w-4 h-4 rounded-full bg-blue-400 shadow-[0_0_15px_#3B82F6]" />
+              <div className="absolute -top-2 left-1/2 w-4 h-4 rounded-full bg-red-500 shadow-[0_0_18px_#EF4444]" />
             </motion.div>
           </div>
 
-          {/* Floating Electron Particles */}
-          {[1, 2, 3, 4, 5].map((i) => (
+          {/* Cosmic Center Elliptical Orbital Ring 2 */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] border border-blue-500/20 rounded-[100%] -rotate-25">
+            <motion.div
+              animate={{ rotate: -360 }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+              className="w-full h-full relative"
+            >
+              <div className="absolute -top-2 left-1/2 w-4 h-4 rounded-full bg-blue-400 shadow-[0_0_18px_#3B82F6]" />
+            </motion.div>
+          </div>
+
+          {/* Floating Quantum Particle Grid */}
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <motion.div
               key={i}
               animate={{
-                x: [0, (i % 2 === 0 ? 1 : -1) * 120, 0],
-                y: [0, (i % 3 === 0 ? -1 : 1) * 150, 0],
-                opacity: [0.3, 0.8, 0.3],
-                scale: [0.8, 1.3, 0.8],
+                x: [0, (i % 2 === 0 ? 1 : -1) * 140, 0],
+                y: [0, (i % 3 === 0 ? -1 : 1) * 160, 0],
+                opacity: [0.3, 0.85, 0.3],
+                scale: [0.8, 1.4, 0.8],
               }}
               transition={{
-                duration: 6 + i * 2,
+                duration: 5 + i * 1.8,
                 repeat: Infinity,
                 ease: 'easeInOut',
               }}
-              className={`absolute w-3 h-3 rounded-full blur-[1px] ${
+              className={`absolute w-3.5 h-3.5 rounded-full blur-[1px] ${
                 i % 2 === 0
-                  ? 'bg-red-500 shadow-[0_0_12px_#EF4444]'
-                  : 'bg-blue-400 shadow-[0_0_12px_#3B82F6]'
+                  ? 'bg-red-500 shadow-[0_0_15px_#EF4444]'
+                  : 'bg-blue-400 shadow-[0_0_15px_#3B82F6]'
               }`}
               style={{
-                top: `${20 + i * 15}%`,
-                left: `${15 + i * 16}%`,
+                top: `${15 + i * 14}%`,
+                left: `${12 + i * 15}%`,
               }}
             />
           ))}
         </div>
       )}
 
-      {/* RENAISSANCE THEME: Floating Gold Dust & Royal Shimmer */}
+      {/* RENAISSANCE THEME: Royal Gold Dust & Renaissance Vignette */}
       {currentTheme === 'renaissance' && (
         <div className="absolute inset-0 overflow-hidden">
           {/* Golden Ambient Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-amber-950/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-amber-950/30" />
           
           {/* Floating Gold Sparkle Dust */}
-          {[1, 2, 3, 4, 6].map((i) => (
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
             <motion.div
               key={i}
               animate={{
-                y: [0, -120],
-                x: [0, (i % 2 === 0 ? 25 : -25)],
-                opacity: [0, 0.7, 0],
+                y: [0, -140],
+                x: [0, (i % 2 === 0 ? 30 : -30)],
+                opacity: [0, 0.85, 0],
+                scale: [0.5, 1.2, 0.5],
               }}
               transition={{
-                duration: 5 + i * 1.5,
+                duration: 4.5 + i * 1.2,
                 repeat: Infinity,
-                delay: i * 0.8,
+                delay: i * 0.6,
                 ease: 'easeInOut',
               }}
-              className="absolute w-2 h-2 rounded-full bg-amber-300 shadow-[0_0_10px_#D4AF37]"
+              className="absolute w-2.5 h-2.5 rounded-full bg-amber-300 shadow-[0_0_12px_#D4AF37]"
               style={{
-                bottom: '10%',
-                left: `${10 + i * 18}%`,
+                bottom: '8%',
+                left: `${8 + i * 14}%`,
               }}
             />
           ))}
         </div>
       )}
 
-      {/* ISLAMIC THEME: Pulsing 8-Point Star Geometric Aura */}
+      {/* ISLAMIC THEME: Pulsing 8-Point Star Geometric Mandala Aura */}
       {currentTheme === 'islamic' && (
-        <div className="absolute inset-0 flex items-center justify-center opacity-15">
+        <div className="absolute inset-0 flex items-center justify-center opacity-20 overflow-hidden">
           {/* Geometric Mandala Star Pulse */}
           <motion.div
             animate={{ rotate: 360, scale: [0.95, 1.05, 0.95] }}
             transition={{ rotate: { duration: 90, repeat: Infinity, ease: 'linear' }, scale: { duration: 8, repeat: Infinity, ease: 'easeInOut' } }}
-            className="w-[600px] h-[600px] rounded-full border-2 border-emerald-400 flex items-center justify-center relative"
+            className="w-[650px] h-[650px] rounded-full border-2 border-emerald-400 flex items-center justify-center relative"
           >
-            <div className="absolute w-[500px] h-[500px] border border-amber-400 rotate-45" />
-            <div className="absolute w-[500px] h-[500px] border border-amber-400 rotate-0" />
-            <div className="absolute w-[350px] h-[350px] rounded-full border border-teal-300" />
+            <div className="absolute w-[520px] h-[520px] border-2 border-amber-400 rotate-45" />
+            <div className="absolute w-[520px] h-[520px] border-2 border-amber-400 rotate-0" />
+            <div className="absolute w-[380px] h-[380px] rounded-full border border-teal-300" />
+            <div className="absolute w-[260px] h-[260px] border border-emerald-300 rotate-22.5" />
           </motion.div>
         </div>
       )}
 
-      {/* DEFAULT / DARK / LIGHT NEURAL GRID OVERLAY */}
-      {(currentTheme === 'default' || currentTheme === 'dark' || currentTheme === 'light') && (
-        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#3D5AFE_1px,transparent_1px)] [background-size:24px_24px]" />
+      {/* CYBERPUNK THEME: Glitch Scanlines, Neon Grid & Falling Digital Matrix Stream */}
+      {currentTheme === 'cyberpunk' && (
+        <div className="absolute inset-0 overflow-hidden bg-[#0D0221]">
+          {/* Scanlines Effect */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(15,244,198,0.03)_1px,transparent_1px)] [background-size:100%_4px]" />
+
+          {/* Cyber Neon Matrix Grid Lines */}
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,0,85,0.05)_1px,transparent_1px),linear-gradient(0deg,rgba(15,244,198,0.05)_1px,transparent_1px)] [background-size:40px_40px]" />
+
+          {/* Falling Digital Data Streams */}
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <motion.div
+              key={i}
+              animate={{ y: ['-20%', '120%'], opacity: [0, 0.9, 0] }}
+              transition={{ duration: 3 + i * 0.8, repeat: Infinity, ease: 'linear', delay: i * 0.5 }}
+              className="absolute w-[2px] h-32 bg-gradient-to-b from-transparent via-[#0FF4C6] to-[#FF0055] shadow-[0_0_10px_#0FF4C6]"
+              style={{ left: `${10 + i * 16}%` }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* NATURE THEME: Floating Leaves & Dappled Forest Sunbeams */}
+      {currentTheme === 'nature' && (
+        <div className="absolute inset-0 overflow-hidden bg-[#F1F8E9]">
+          {/* Dappled Sunbeam Light */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-200/25 rounded-full blur-3xl" />
+
+          {/* Floating Leaf Particles */}
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <motion.div
+              key={i}
+              animate={{
+                y: ['-10%', '110%'],
+                x: [0, (i % 2 === 0 ? 40 : -40), 0],
+                rotate: [0, 360],
+                opacity: [0, 0.7, 0],
+              }}
+              transition={{
+                duration: 8 + i * 2,
+                repeat: Infinity,
+                delay: i * 1.2,
+                ease: 'easeInOut',
+              }}
+              className="absolute text-emerald-600/40"
+              style={{ left: `${5 + i * 16}%` }}
+            >
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17 8C8 10 59 16.17 3.82 21.34L2.41 19.93C7.58 14.76 13.83 11.83 17 8M12.5 15.5C10.5 15.5 8.5 14.5 7 13C8.5 11.5 10.5 10.5 12.5 10.5C14.5 10.5 16.5 11.5 18 13C16.5 14.5 14.5 15.5 12.5 15.5Z" />
+              </svg>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* MONOCHROME THEME: Studio Crosshair Alignment Marks & Film Viewfinder Frame */}
+      {currentTheme === 'monochrome' && (
+        <div className="absolute inset-0 overflow-hidden opacity-20">
+          <div className="absolute top-6 left-6 font-mono text-[10px] font-black tracking-widest text-black uppercase">
+            [FLUOST STUDIO • VIEWFINDER 100%]
+          </div>
+          <div className="absolute top-6 right-6 font-mono text-[10px] font-black tracking-widest text-black uppercase">
+            REC • 60FPS
+          </div>
+          <div className="absolute bottom-6 left-6 font-mono text-[10px] font-black tracking-widest text-black uppercase">
+            RAW • 4K
+          </div>
+          <div className="absolute bottom-6 right-6 font-mono text-[10px] font-black tracking-widest text-black uppercase">
+            [ISO 100 • 1/250]
+          </div>
+          {/* Center Crosshair Target */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center">
+            <div className="w-full h-[1px] bg-black" />
+            <div className="h-full w-[1px] bg-black absolute" />
+          </div>
+        </div>
+      )}
+
+      {/* SUNSET THEME: Glowing Horizon Sun Arc & Floating Warm Embers */}
+      {currentTheme === 'sunset' && (
+        <div className="absolute inset-0 overflow-hidden bg-[#FFEBEE]">
+          {/* Horizon Sun Arc Glow */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-t from-orange-500/30 via-rose-500/20 to-transparent rounded-t-full blur-2xl" />
+
+          {/* Floating Sunset Embers */}
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <motion.div
+              key={i}
+              animate={{
+                y: [0, -180],
+                x: [0, (i % 2 === 0 ? 35 : -35)],
+                opacity: [0, 0.8, 0],
+                scale: [0.6, 1.3, 0.6],
+              }}
+              transition={{
+                duration: 5 + i * 1.5,
+                repeat: Infinity,
+                delay: i * 0.7,
+                ease: 'easeInOut',
+              }}
+              className="absolute w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_12px_#F59E0B]"
+              style={{
+                bottom: '15%',
+                left: `${10 + i * 14}%`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* DARK THEME: Deep Space Starry Constellations */}
+      {currentTheme === 'dark' && (
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Twinkling Stars */}
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <motion.div
+              key={i}
+              animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
+              transition={{ duration: 2 + (i % 3), repeat: Infinity, ease: 'easeInOut', delay: i * 0.3 }}
+              className="absolute w-1.5 h-1.5 bg-indigo-300 rounded-full shadow-[0_0_8px_#818CF8]"
+              style={{
+                top: `${10 + i * 11}%`,
+                left: `${8 + i * 11}%`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* CLASSIC WHITE THEME: Studio Modernist Pristine Porcelain & Silver Prism Rays */}
+      {currentTheme === 'light' && (
+        <div className="absolute inset-0 overflow-hidden bg-[#FAFBFD]">
+          {/* Soft Silver & Indigo Prism Glows */}
+          <div className="absolute -top-10 right-1/4 w-[650px] h-[650px] bg-gradient-to-br from-indigo-200/35 via-sky-100/25 to-transparent rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 left-1/3 w-[550px] h-[550px] bg-gradient-to-tr from-blue-100/35 via-slate-200/25 to-transparent rounded-full blur-3xl" />
+
+          {/* Minimalist Studio Grid */}
+          <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(#020617_1px,transparent_1px)] [background-size:20px_20px]" />
+
+          {/* Floating Silver Prism Beams */}
+          {[1, 2, 3, 4].map((i) => (
+            <motion.div
+              key={i}
+              animate={{
+                y: ['-20%', '120%'],
+                x: [0, i % 2 === 0 ? 25 : -25, 0],
+                opacity: [0, 0.7, 0]
+              }}
+              transition={{
+                duration: 9 + i * 2.5,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: i * 1.8
+              }}
+              className="absolute w-[2px] h-44 bg-gradient-to-b from-transparent via-indigo-400/30 to-transparent shadow-[0_0_8px_rgba(99,102,241,0.2)]"
+              style={{ left: `${18 + i * 20}%` }}
+            />
+          ))}
+
+          {/* Studio Viewfinder Corner Marks */}
+          <div className="absolute top-6 left-6 font-mono text-[9px] font-black tracking-widest text-slate-400 uppercase opacity-60">
+            [STUDIO CLASSIC WHITE • HIGH-PRECISION]
+          </div>
+          <div className="absolute bottom-6 right-6 font-mono text-[9px] font-black tracking-widest text-slate-400 uppercase opacity-60">
+            PURE MODERNISM • 60FPS
+          </div>
+        </div>
+      )}
+
+      {/* BLUEEN THEME v3.0: Electric Cobalt & Luminous Cyan Aurora */}
+      {(currentTheme === 'default' || currentTheme === 'blueen') && (
+        <div className="absolute inset-0 overflow-hidden bg-[#050A1A]">
+          {/* Deep Cobalt & Cyan Electric Aurora Glowing Orbs */}
+          <motion.div
+            animate={{
+              scale: [1, 1.25, 1],
+              x: [-20, 30, -20],
+              y: [-10, 20, -10],
+              opacity: [0.4, 0.7, 0.4]
+            }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute -top-20 -left-20 w-[650px] h-[650px] bg-gradient-to-br from-[#3D5AFE]/40 via-[#00E5FF]/25 to-transparent rounded-full blur-3xl transform-gpu"
+          />
+
+          <motion.div
+            animate={{
+              scale: [1.2, 1, 1.2],
+              x: [30, -20, 30],
+              y: [20, -15, 20],
+              opacity: [0.35, 0.65, 0.35]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute -bottom-20 -right-20 w-[700px] h-[700px] bg-gradient-to-tl from-[#7C3AED]/35 via-[#00E5FF]/20 to-transparent rounded-full blur-3xl transform-gpu"
+          />
+
+          <motion.div
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.2, 0.5, 0.2]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-gradient-to-r from-[#00E5FF]/20 via-[#3D5AFE]/30 to-transparent rounded-full blur-3xl transform-gpu"
+          />
+
+          {/* Cybernetic Holographic Matrix Grid */}
+          <div className="absolute inset-0 opacity-[0.07] bg-[linear-gradient(to_right,#00E5FF_1px,transparent_1px),linear-gradient(to_bottom,#00E5FF_1px,transparent_1px)] [background-size:36px_36px]" />
+
+          {/* Laser Photon Energy Beams */}
+          {[1, 2, 3, 4, 5].map((i) => (
+            <motion.div
+              key={i}
+              animate={{
+                x: ['-20%', '120%'],
+                y: ['0%', '100%'],
+                opacity: [0, 0.8, 0]
+              }}
+              transition={{
+                duration: 7 + i * 2,
+                repeat: Infinity,
+                ease: 'linear',
+                delay: i * 1.5
+              }}
+              className="absolute w-48 h-[2px] bg-gradient-to-r from-transparent via-[#00E5FF] to-transparent shadow-[0_0_12px_#00E5FF]"
+              style={{
+                top: `${12 + i * 18}%`,
+                left: `${(i * 20) % 80}%`,
+                transform: 'rotate(-25deg)'
+              }}
+            />
+          ))}
+
+          {/* Floating Cyber Photon Nodes */}
+          {[1, 2, 3, 4].map((i) => (
+            <motion.div
+              key={`node-${i}`}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.3, 0.9, 0.3],
+                scale: [0.8, 1.2, 0.8]
+              }}
+              transition={{
+                duration: 5 + i * 1.5,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: i * 1.2
+              }}
+              className="absolute w-2 h-2 rounded-full bg-[#00E5FF] shadow-[0_0_12px_#00E5FF]"
+              style={{
+                top: `${20 + i * 22}%`,
+                left: `${15 + i * 22}%`
+              }}
+            />
+          ))}
+
+          {/* Studio HUD Corner Labels */}
+          <div className="absolute top-6 left-6 font-mono text-[9px] font-black tracking-widest text-[#00E5FF] uppercase opacity-75 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-ping" />
+            [BLUEEN v3.0 • ELECTRIC COBALT AURORA]
+          </div>
+          <div className="absolute bottom-6 right-6 font-mono text-[9px] font-black tracking-widest text-[#00E5FF] uppercase opacity-75">
+            PHOTON CYBER FLOW • FLUOST STUDIO
+          </div>
+        </div>
       )}
     </div>
   );
 };
+

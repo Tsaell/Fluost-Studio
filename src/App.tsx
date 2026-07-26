@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { User } from 'firebase/auth';
 import { TabType, ThemeMode } from './types';
 import { Header } from './components/Header';
@@ -7,6 +8,7 @@ import { ListenList } from './components/ListenList';
 import { AiSpark } from './components/AiSpark';
 import { Visualost } from './components/Visualost';
 import { Planner } from './components/Planner';
+import { GeminiChatbot } from './components/GeminiChatbot';
 import { ApiSettingsModal } from './components/ApiSettingsModal';
 import { NotificationModal } from './components/NotificationModal';
 import { ThemeBackground } from './components/ThemeBackground';
@@ -17,7 +19,72 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('grid');
   const [currentTheme, setCurrentTheme] = useState<ThemeMode>('sky');
+  const [isSmartTheme, setIsSmartTheme] = useState<boolean>(true);
+  const [smartThemeInfo, setSmartThemeInfo] = useState<{
+    resolvedTheme: ThemeMode;
+    label: string;
+    timeRange: string;
+  }>({
+    resolvedTheme: 'sky',
+    label: 'Mode Pagi Hari',
+    timeRange: '06:00 - 11:00',
+  });
   const [hasEnvApiKey, setHasEnvApiKey] = useState<boolean>(true);
+
+  // Smart Theme Auto-Calculation logic based on local time & browser color-scheme preference
+  const updateSmartTheme = () => {
+    const hour = new Date().getHours();
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    let theme: ThemeMode = 'sky';
+    let label = 'Mode Pagi (Panoramic Sky)';
+    let timeRange = '06:00 - 11:00';
+
+    if (hour >= 6 && hour < 11) {
+      theme = 'sky';
+      label = 'Pagi Hari (Panoramic Sky)';
+      timeRange = '06:00 - 11:00';
+    } else if (hour >= 11 && hour < 17) {
+      if (prefersDark) {
+        theme = 'cyberpunk';
+        label = 'Siang Mode Gelap (Cyberpunk)';
+        timeRange = '11:00 - 17:00';
+      } else {
+        theme = 'light';
+        label = 'Siang Terang (Classic White)';
+        timeRange = '11:00 - 17:00';
+      }
+    } else if (hour >= 17 && hour < 19) {
+      theme = 'sunset';
+      label = 'Senja Golden Hour (Crimson Sunset)';
+      timeRange = '17:00 - 19:00';
+    } else {
+      theme = 'dark';
+      label = 'Malam Hari (Authentic Dark)';
+      timeRange = '19:00 - 06:00';
+    }
+
+    setSmartThemeInfo({ resolvedTheme: theme, label, timeRange });
+    return theme;
+  };
+
+  // Effect to apply theme (either manual or smart mode)
+  useEffect(() => {
+    let appliedTheme = currentTheme;
+    if (isSmartTheme) {
+      appliedTheme = updateSmartTheme();
+    }
+    document.documentElement.setAttribute('data-theme', appliedTheme);
+
+    const interval = setInterval(() => {
+      if (isSmartTheme) {
+        const theme = updateSmartTheme();
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, [currentTheme, isSmartTheme]);
 
   // User Auth & Cloud Persistence State
   const [user, setUser] = useState<User | null>(null);
@@ -135,7 +202,8 @@ export default function App() {
 
   const themeLabels: Record<ThemeMode, string> = {
     sky: 'Panoramic Sky',
-    default: 'Blueen',
+    default: 'Blueen v3.0',
+    blueen: 'Blueen v3.0',
     light: 'Classic White',
     renaissance: 'Fluost Renaissance',
     islamic: 'Golden Age',
@@ -148,6 +216,7 @@ export default function App() {
   };
 
   const handleSetTheme = (themeName: ThemeMode) => {
+    setIsSmartTheme(false);
     setCurrentTheme(themeName);
     if (user) {
       saveUserDataToCloud(user.uid, { theme: themeName });
@@ -155,17 +224,39 @@ export default function App() {
     showModal('Evolusi Tema', `UI Fluost telah beradaptasi ke atmosfer artistik: ${themeLabels[themeName] || themeName}.`);
   };
 
+  const handleToggleSmartTheme = (enable?: boolean) => {
+    const nextSmartState = enable !== undefined ? enable : !isSmartTheme;
+    setIsSmartTheme(nextSmartState);
+    if (nextSmartState) {
+      const activeTheme = updateSmartTheme();
+      showModal(
+        'Mode Smart Theme Aktif ⚡',
+        `Tema UI kini beradaptasi secara otomatis berdasarkan waktu lokal & preferensi sistem (${smartThemeInfo.label} ➔ Tema ${themeLabels[activeTheme] || activeTheme}).`
+      );
+    } else {
+      showModal(
+        'Mode Manual Aktif 🎨',
+        `Smart Theme dinonaktifkan. Anda dapat memilih dari 11 tema artistik secara bebas.`
+      );
+    }
+  };
+
+  const activeEffectiveTheme = isSmartTheme ? smartThemeInfo.resolvedTheme : currentTheme;
+
   return (
     <div className="min-h-screen flex flex-col relative pb-52 pt-6 sm:pt-8 lg:pb-12 lg:pt-8 lg:pl-72 transition-colors duration-500 overflow-x-hidden">
       {/* Dynamic Theme Background Canvas & Particle Animations */}
-      <ThemeBackground currentTheme={currentTheme} />
+      <ThemeBackground currentTheme={activeEffectiveTheme} />
 
       {/* PC Sidebar & Mobile Floating Taskbar */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        currentTheme={currentTheme}
+        currentTheme={activeEffectiveTheme}
         setTheme={handleSetTheme}
+        isSmartTheme={isSmartTheme}
+        onToggleSmartTheme={handleToggleSmartTheme}
+        smartThemeInfo={smartThemeInfo}
         onOpenApiModal={() => setIsApiModalOpen(true)}
         hasApiKey={true}
         user={user}
@@ -176,26 +267,43 @@ export default function App() {
       {/* Main Content Viewport */}
       <main className="w-full px-4 sm:px-6 lg:px-10 max-w-7xl mx-auto flex-grow relative z-10">
         <ErrorBoundary>
-          {activeTab === 'grid' && <EnGrid onShowModal={showModal} />}
-          {activeTab === 'music' && (
-            <ListenList
-              onShowModal={showModal}
-              onOpenApiModal={() => setIsApiModalOpen(true)}
-            />
-          )}
-          {activeTab === 'ai' && (
-            <AiSpark
-              onShowModal={showModal}
-              onOpenApiModal={() => setIsApiModalOpen(true)}
-            />
-          )}
-          {activeTab === 'assistant' && (
-            <Visualost
-              onShowModal={showModal}
-              onOpenApiModal={() => setIsApiModalOpen(true)}
-            />
-          )}
-          {activeTab === 'planner' && <Planner onShowModal={showModal} user={user} accessToken={accessToken} />}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 14, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -14, scale: 0.985 }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full"
+            >
+              {activeTab === 'grid' && <EnGrid onShowModal={showModal} />}
+              {activeTab === 'chat' && (
+                <GeminiChatbot
+                  onShowModal={showModal}
+                  onOpenApiModal={() => setIsApiModalOpen(true)}
+                />
+              )}
+              {activeTab === 'music' && (
+                <ListenList
+                  onShowModal={showModal}
+                  onOpenApiModal={() => setIsApiModalOpen(true)}
+                />
+              )}
+              {activeTab === 'ai' && (
+                <AiSpark
+                  onShowModal={showModal}
+                  onOpenApiModal={() => setIsApiModalOpen(true)}
+                />
+              )}
+              {activeTab === 'assistant' && (
+                <Visualost
+                  onShowModal={showModal}
+                  onOpenApiModal={() => setIsApiModalOpen(true)}
+                />
+              )}
+              {activeTab === 'planner' && <Planner onShowModal={showModal} user={user} accessToken={accessToken} />}
+            </motion.div>
+          </AnimatePresence>
         </ErrorBoundary>
       </main>
 

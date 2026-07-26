@@ -43,6 +43,7 @@ export const EnGrid: React.FC<EnGridProps> = ({ onShowModal }) => {
   // Lightbox preview for single tile
   const [selectedPiece, setSelectedPiece] = useState<GridPiece | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [gridGap, setGridGap] = useState<'sm' | 'none' | 'lg'>('sm');
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -273,6 +274,43 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
     } catch (err: any) {
       console.error(err);
       onShowModal('Gagal Mengunduh', 'Terjadi kesalahan saat memproses file ZIP.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Carousel Slide Kit ZIP Download (Sequential Slide 1 -> Slide N for Carousel post)
+  const handleDownloadCarouselZip = async () => {
+    if (gridPieces.length === 0) return;
+
+    setIsProcessing(true);
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(`fluost_carousel_${cols}x${rows}_slides`);
+
+      // Sort left-to-right, top-to-bottom for continuous carousel reading
+      const sortedSlides = gridPieces.slice().sort((a, b) => a.id - b.id);
+
+      sortedSlides.forEach((piece, idx) => {
+        const dataUrl = getCanvasDataUrlForPiece(piece) || '';
+        const base64Data = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+        const filename = `carousel_slide_${(idx + 1).toString().padStart(2, '0')}_of_${sortedSlides.length}.jpg`;
+        folder?.file(filename, base64Data, { base64: true });
+      });
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `fluost_carousel_${cols}x${rows}_kit.zip`;
+      link.click();
+
+      onShowModal(
+        'Carousel Kit Berhasil Diunduh',
+        `Paket Carousel IG berisi ${sortedSlides.length} slide berurutan dari kiri ke kanan siap diunggah sebagai Multiple Photos Carousel.`
+      );
+    } catch (err: any) {
+      console.error(err);
+      onShowModal('Gagal Mengunduh', 'Terjadi kesalahan saat memproses Carousel Kit.');
     } finally {
       setIsProcessing(false);
     }
@@ -526,11 +564,11 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-3 pt-2">
+              <div className="space-y-2.5 pt-2">
                 <button 
                   onClick={handleDownloadAllZip}
                   disabled={isProcessing || gridPieces.length === 0}
-                  className="fluost-btn w-full py-4 flex items-center justify-center gap-2 text-sm shadow-xl"
+                  className="fluost-btn w-full py-3.5 flex items-center justify-center gap-2 text-xs md:text-sm shadow-xl"
                 >
                   {isProcessing ? (
                     <>
@@ -538,9 +576,18 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
                     </>
                   ) : (
                     <>
-                      <Download className="w-4 h-4" /> Unduh Paket ZIP ({gridPieces.length} Potongan)
+                      <Download className="w-4 h-4" /> Unduh Grid Pack ZIP ({gridPieces.length} Potongan)
                     </>
                   )}
+                </button>
+
+                <button 
+                  onClick={handleDownloadCarouselZip}
+                  disabled={isProcessing || gridPieces.length === 0}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95"
+                >
+                  <Layers className="w-4 h-4" />
+                  <span>Unduh Carousel Post Kit (Slide 1 ➔ {gridPieces.length})</span>
                 </button>
               </div>
 
@@ -579,6 +626,33 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const raw = localStorage.getItem('fluost_synced_storyboard');
+                      if (raw) {
+                        try {
+                          const data = JSON.parse(raw);
+                          onShowModal(
+                            `🎬 Storyboard AI Spark: ${data.topic || 'Konten Sync'}`,
+                            `${data.text}`
+                          );
+                        } catch (e) {
+                          onShowModal('Belum Ada Storyboard', 'Belum ada storyboard yang di-sync dari tab AI Spark.');
+                        }
+                      } else {
+                        onShowModal(
+                          'Belum Ada Storyboard Di-sync',
+                          'Buka tab AI Spark, buat caption/storyboard, lalu klik tombol "Sync ke Feed Grid" untuk mengimpor ke sini!'
+                        );
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md flex items-center gap-1.5 transition-all"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                    <span>Lihat Storyboard Sync</span>
+                  </button>
+
                   <span className="ice-badge font-mono">
                     {cols} x {rows} Feed Preview
                   </span>

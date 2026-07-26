@@ -315,3 +315,102 @@ export async function fetchVisualAI(
   return generateLocalVisualAI(userPrompt, validItems.length);
 }
 
+export interface ChatAttachment {
+  base64Data: string;
+  mimeType: string;
+  fileName?: string;
+}
+
+export interface ChatMessageItem {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  timestamp: string;
+  attachments?: ChatAttachment[];
+  groundingSources?: Array<{ uri: string; title?: string }>;
+  modelUsed?: string;
+}
+
+export interface SendChatParams {
+  messages: Array<{
+    role: 'user' | 'model';
+    text: string;
+    attachments?: ChatAttachment[];
+  }>;
+  systemInstruction?: string;
+  model?: string;
+  enableSearchGrounding?: boolean;
+  customApiKey?: string;
+}
+
+export interface ChatApiResponse {
+  text: string;
+  groundingSources?: Array<{ uri: string; title?: string }>;
+}
+
+export async function sendGeminiChatMessage(params: SendChatParams): Promise<ChatApiResponse> {
+  const activeKey = params.customApiKey || getActiveApiKey();
+
+  // Tier 1: Express Server API
+  try {
+    const res = await fetch('/api/gemini/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(activeKey ? { 'x-custom-api-key': activeKey } : {}),
+      },
+      body: JSON.stringify(params),
+    });
+
+    const contentType = res.headers.get('content-type') || '';
+    if (res.ok && contentType.includes('application/json')) {
+      const data = await res.json();
+      if (data.text) {
+        return {
+          text: data.text,
+          groundingSources: data.groundingSources || [],
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Server API unavailable for Chatbot, switching fallback...');
+  }
+
+  // Tier 2: Direct Client Fallback if API Key exists
+  if (activeKey.trim()) {
+    try {
+      const lastMsg = params.messages[params.messages.length - 1];
+      let firstAttachment: ChatAttachment | undefined;
+      if (lastMsg && lastMsg.attachments && lastMsg.attachments.length > 0) {
+        firstAttachment = lastMsg.attachments[0];
+      }
+      const directText = await callDirectGemini(
+        activeKey.trim(),
+        `${params.systemInstruction ? `[Role/System]: ${params.systemInstruction}\n\n` : ''}${lastMsg?.text || 'Halo'}`,
+        firstAttachment?.base64Data,
+        firstAttachment?.mimeType
+      );
+      return { text: directText };
+    } catch (directErr) {
+      console.warn('Direct Gemini API call failed for Chatbot, using Local Engine...');
+    }
+  }
+
+  // Tier 3: Local Engine fallback
+  const lastUserText = params.messages[params.messages.length - 1]?.text || '';
+  const localReply = `### 🤖 Fluost Studio AI Assistant
+Halo! Saya adalah asisten AI dari Fluost Studio.
+
+Mengenai pertanyaan Anda: **"${lastUserText}"**
+
+Berikut masukan & saran praktis untuk mengoptimalkan konten Anda:
+1. **Visual & Feed Harmony**: Pastikan warna & kontras gambar seimbang dengan tema UI Anda.
+2. **Engagement Hook**: Sertakan kalimat pembuka memikat di 3 detik pertama video / baris pertama caption.
+3. **Hashtag & Grounding**: Gunakan hashtag ceruk yang spesifik dengan target audiens Anda.
+
+*Tips*: Untuk analisis langsung secara mendalam dengan Google Search Grounding atau model Pro terbaru, pastikan API Key Gemini terhubung di menu Pengaturan API.`;
+
+  return { text: localReply };
+}
+
+

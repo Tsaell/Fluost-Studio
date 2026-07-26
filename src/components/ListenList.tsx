@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Headphones, Radio, Sparkles, Disc, Music, AlertTriangle, Upload, Image as ImageIcon, Video, Youtube, X, Play, Pause, ExternalLink } from 'lucide-react';
+import { Headphones, Radio, Sparkles, Disc, Music, AlertTriangle, Upload, Image as ImageIcon, Video, Youtube, X, Play, Pause, ExternalLink, Copy } from 'lucide-react';
 import { ThemeLoader } from './ThemeLoader';
 import { fetchMusicAI, MusicSongItem } from '../lib/geminiClient';
 
@@ -23,6 +23,24 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
   // Custom Media Upload State (For users who prefer uploading photo/video instead of typing)
   const [uploadedMedia, setUploadedMedia] = useState<{ url: string; type: 'image' | 'video'; name: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Audio and Object URL cleanup
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (uploadedMedia?.url && uploadedMedia.url.startsWith('blob:')) {
+        URL.revokeObjectURL(uploadedMedia.url);
+      }
+    };
+  }, [uploadedMedia]);
 
   const toggleAudioPreview = (trackId: number, previewUrl?: string) => {
     if (!previewUrl) return;
@@ -167,6 +185,40 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
             </button>
           </div>
 
+          {/* Quick Vibe & Genre Chips */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="text-[11px] font-bold text-[var(--fluid-2)] uppercase tracking-wider shrink-0 mr-1">
+              Kategori Cepat:
+            </span>
+            {[
+              { label: '🔥 Viral TikTok', q: 'Lagu viral TikTok trending Instagram Reels' },
+              { label: '🌊 Chill Lofi', q: 'Lofi chill instrumental relaxed sunset' },
+              { label: '💔 Lagu Galau', q: 'Lagu galau Indonesia sedih patah hati' },
+              { label: '☀️ Sunset Aesthetic', q: 'Lagu mood sunset pantai sore estetik' },
+              { label: '⚡ Upbeat Pop', q: 'Upbeat energetic pop hits dance' },
+              { label: '🇰🇷 K-Pop Vibe', q: 'K-Pop aesthetic chill vibe Korean hits' },
+              { label: '🎸 Indie Folk', q: 'Indie folk akustik senja kopi' },
+            ].map((chip) => (
+              <button
+                key={chip.label}
+                type="button"
+                onClick={() => {
+                  setQuery(chip.q);
+                  // Trigger search with new query
+                  setTimeout(() => {
+                    fetchMusicAI(chip.q).then((res) => {
+                      setResultText(res.resultText);
+                      setSongList(res.songs || []);
+                    }).catch((err) => setErrorMessage(String(err)));
+                  }, 50);
+                }}
+                className="px-2.5 py-1.5 rounded-xl bg-[var(--ice-bg)] hover:bg-[#3D5AFE] hover:text-white border border-[var(--ice-border)] text-xs font-bold transition-all active:scale-95 shadow-xs"
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
+
           {/* Uploaded Custom Media Preview Pill */}
           {uploadedMedia && (
             <div className="flex items-center justify-between p-3 rounded-2xl bg-[var(--ice-bg)] border border-[var(--ice-border)] text-xs font-bold shadow-sm">
@@ -278,6 +330,22 @@ export const ListenList: React.FC<ListenListProps> = ({ onShowModal, onOpenApiMo
                         </div>
 
                         <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const formattedCaption = `🎵 Listening to: ${song.trackName} - ${song.artistName}\n\n✨ "Suasana & nada visual menyatu sempurna dalam ritme nada."\n\n#FluostStudio #NowPlaying #${song.artistName.replace(/\s+/g, '')} #${song.trackName.replace(/\s+/g, '')} #ReelsAudio #InstagramFeed`;
+                              navigator.clipboard.writeText(formattedCaption);
+                              onShowModal(
+                                'Caption IG Lirik Tersalin!',
+                                `Caption berikut telah disalin ke clipboard:\n\n${formattedCaption}`
+                              );
+                            }}
+                            className="p-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white transition-all font-bold text-xs flex items-center justify-center shadow-md active:scale-95"
+                            title="Salin sebagai Caption IG Lirik"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+
                           {song.previewUrl && (
                             <button
                               type="button"

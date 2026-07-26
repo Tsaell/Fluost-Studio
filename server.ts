@@ -290,6 +290,93 @@ ${userPrompt ? `\n### 💬 Jawaban atas Arahan Khusus\n- [Penjelasan & rekomenda
   }
 });
 
+// API: Multi-turn Chatbot with Role Roles, Search Grounding & Multimodal Photo/Video
+app.post('/api/gemini/chat', async (req, res) => {
+  try {
+    const {
+      messages,
+      systemInstruction,
+      model = 'gemini-3.5-flash',
+      enableSearchGrounding = false,
+    } = req.body;
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'Riwayat pesan tidak boleh kosong.' });
+    }
+
+    const customKey = req.headers['x-custom-api-key'];
+    const ai = getGenAIClient(customKey);
+
+    // Map model selection
+    let targetModel = 'gemini-3.6-flash';
+    if (model === 'gemini-3.1-pro-preview') {
+      targetModel = 'gemini-3.1-pro-preview';
+    } else if (model === 'gemini-3.1-flash-lite') {
+      targetModel = 'gemini-3.1-flash-lite';
+    } else if (model === 'gemini-3.5-flash') {
+      targetModel = 'gemini-3.6-flash';
+    }
+
+    // Format chat messages into Gemini SDK contents format
+    const formattedContents = messages.map((msg: any) => {
+      const parts: any[] = [];
+      if (msg.attachments && Array.isArray(msg.attachments)) {
+        msg.attachments.forEach((att: any) => {
+          if (att.base64Data && att.mimeType) {
+            parts.push({
+              inlineData: {
+                data: att.base64Data,
+                mimeType: att.mimeType,
+              },
+            });
+          }
+        });
+      }
+      if (msg.text) {
+        parts.push({ text: msg.text });
+      }
+      return {
+        role: msg.role === 'model' ? 'model' : 'user',
+        parts: parts.length > 0 ? parts : [{ text: '' }],
+      };
+    });
+
+    const config: any = {};
+    if (systemInstruction) {
+      config.systemInstruction = systemInstruction;
+    }
+    if (enableSearchGrounding) {
+      config.tools = [{ googleSearch: {} }];
+    }
+
+    const response = await ai.models.generateContent({
+      model: targetModel,
+      contents: formattedContents,
+      config,
+    });
+
+    const text = response.text || '';
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const groundingSources = groundingChunks
+      .map((chunk: any) => chunk?.web)
+      .filter((web: any) => web && web.uri);
+
+    res.json({
+      text,
+      groundingSources,
+    });
+  } catch (error: any) {
+    console.error('Error in /api/gemini/chat:', error);
+    if (error.message === 'GEMINI_API_KEY_MISSING') {
+      return res.status(401).json({
+        error: 'API Key Gemini tidak ditemukan.',
+      });
+    }
+    res.status(500).json({ error: error.message || 'Gagal mengirim pesan chat.' });
+  }
+});
+
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

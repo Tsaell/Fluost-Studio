@@ -1,31 +1,45 @@
 @import "tailwindcss";
 
 :root {
-  /* Default Theme Variables (Panoramic Sky) */
-  --bg-base: #38BDF8;
-  --text-main: #022B42;
-  --text-muted: #034061;
-  --fluid-1: #0284C7;
-  --fluid-2: #0369A1;
-  --fluid-3: #E0F2FE;
-  --ice-border: rgba(2, 132, 199, 0.35);
-  --ice-bg: rgba(255, 255, 255, 0.95);
-  --card-bg: rgba(255, 255, 255, 0.94);
-  --accent-glow: rgba(2, 132, 199, 0.3);
+  /* Default / Blueen Theme Variables (Electric Cobalt & Luminous Cyan Aurora) */
+  --bg-base: #050A1A;
+  --text-main: #F0F6FF;
+  --text-muted: #93C5FD;
+  --fluid-1: #3D5AFE;
+  --fluid-2: #00E5FF;
+  --fluid-3: #7C3AED;
+  --ice-border: rgba(0, 229, 255, 0.35);
+  --ice-bg: rgba(10, 16, 38, 0.88);
+  --card-bg: rgba(8, 12, 30, 0.92);
+  --accent-glow: rgba(0, 229, 255, 0.45);
+}
+
+[data-theme="default"], [data-theme="blueen"] {
+  /* Blueen v3.0 - Major Update: Electric Cobalt & Luminous Cyan Aurora */
+  --bg-base: #050A1A;
+  --text-main: #F0F6FF;
+  --text-muted: #93C5FD;
+  --fluid-1: #3D5AFE;
+  --fluid-2: #00E5FF;
+  --fluid-3: #7C3AED;
+  --ice-border: rgba(0, 229, 255, 0.35);
+  --ice-bg: rgba(10, 16, 38, 0.88);
+  --card-bg: rgba(8, 12, 30, 0.92);
+  --accent-glow: rgba(0, 229, 255, 0.45);
 }
 
 [data-theme="light"] {
-  /* Classic White */
-  --bg-base: #F8FAFC;
-  --text-main: #000000; /* Solid black font */
-  --text-muted: #1E293B; /* Dark slate font */
-  --fluid-1: #2563EB;
-  --fluid-2: #0284C7;
-  --fluid-3: #0D9488;
-  --ice-border: rgba(203, 213, 225, 0.9);
-  --ice-bg: rgba(255, 255, 255, 0.95);
+  /* Classic White - Studio Modernist Porcelain Update */
+  --bg-base: #FAFBFD;
+  --text-main: #020617; /* Slate-950 super crisp font */
+  --text-muted: #334155; /* Slate-700 readable font */
+  --fluid-1: #3B82F6;
+  --fluid-2: #6366F1;
+  --fluid-3: #0EA5E9;
+  --ice-border: rgba(226, 232, 240, 0.95);
+  --ice-bg: rgba(255, 255, 255, 0.98);
   --card-bg: #FFFFFF;
-  --accent-glow: rgba(37, 99, 235, 0.2);
+  --accent-glow: rgba(59, 130, 246, 0.18);
 }
 
 [data-theme="dark"] {
@@ -133,6 +147,20 @@ body {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-glow);
 }
 
+/* Theme Characteristic: Blueen (Electric Cobalt Aurora & Dual-Layer Glass) */
+[data-theme="default"] .fluost-box, [data-theme="blueen"] .fluost-box {
+  border-radius: 2rem 1.25rem 2rem 1.25rem;
+  border: 1.5px solid rgba(0, 229, 255, 0.4);
+  box-shadow: 0 20px 45px rgba(3, 7, 26, 0.85), 0 0 20px rgba(0, 229, 255, 0.18), inset 0 0 25px rgba(61, 90, 254, 0.25);
+  background: rgba(8, 12, 30, 0.92);
+}
+
+[data-theme="default"] .fluost-box:hover, [data-theme="blueen"] .fluost-box:hover {
+  border-color: #00E5FF;
+  border-radius: 1.25rem 2rem 1.25rem 2rem;
+  box-shadow: 0 25px 50px -10px rgba(0, 229, 255, 0.4), 0 0 35px rgba(0, 229, 255, 0.55), inset 0 0 30px rgba(61, 90, 254, 0.4);
+}
+
 /* Theme Characteristic: Sky (Cloud-like Abstract Rounded Corners + High Contrast Light Surface) */
 [data-theme="sky"] .fluost-box {
   border-radius: 2.25rem 1.25rem 2.5rem 1.25rem;
@@ -145,11 +173,17 @@ body {
   box-shadow: 0 25px 55px rgba(2, 132, 199, 0.35), inset 0 0 35px #ffffff;
 }
 
-/* Theme Characteristic: Light / Classic White */
+/* Theme Characteristic: Light / Classic White - Studio Modernist Porcelain Update */
 [data-theme="light"] .fluost-box {
-  border-radius: 1.75rem;
-  border: 1px solid #CBD5E1;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+  border-radius: 2rem;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 12px 32px -10px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04), inset 0 1px 0 #FFFFFF;
+  background: #FFFFFF;
+}
+
+[data-theme="light"] .fluost-box:hover {
+  border-color: #3B82F6;
+  box-shadow: 0 20px 45px -12px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.25);
 }
 
 /* Theme Characteristic: Atom (Elliptical Cosmic Overlapping Geometry) */
@@ -168,15 +202,53 @@ body {
 /* Theme Characteristic: Renaissance (Golden Foil Frame) */
 [data-theme="renaissance"] .fluost-box {
   border-radius: 1.5rem;
-  border: 1px solid rgba(212, 175, 55, 0.6);
+  border: 1.5px solid rgba(212, 175, 55, 0.6);
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(212, 175, 55, 0.15);
 }
 
 /* Theme Characteristic: Islamic (Emerald Beveled Geometry) */
 [data-theme="islamic"] .fluost-box {
   border-radius: 1.75rem;
-  border: 1px solid rgba(16, 185, 129, 0.5);
+  border: 1.5px solid rgba(16, 185, 129, 0.5);
   box-shadow: 0 20px 45px rgba(2, 44, 34, 0.8), inset 0 0 25px rgba(245, 158, 11, 0.15);
+}
+
+/* Theme Characteristic: Cyberpunk (Cyber Neon Outlines) */
+[data-theme="cyberpunk"] .fluost-box {
+  border-radius: 0.5rem 1.75rem 0.5rem 1.75rem;
+  border: 2px solid rgba(15, 244, 198, 0.6);
+  box-shadow: 0 0 25px rgba(255, 0, 85, 0.3), inset 0 0 20px rgba(15, 244, 198, 0.1);
+}
+
+[data-theme="cyberpunk"] .fluost-box:hover {
+  border-color: #FF0055;
+  box-shadow: 0 0 35px rgba(15, 244, 198, 0.6), inset 0 0 25px rgba(255, 0, 85, 0.3);
+}
+
+/* Theme Characteristic: Nature (Organic Soft Leaf Shapes) */
+[data-theme="nature"] .fluost-box {
+  border-radius: 2.25rem 0.75rem 2.25rem 0.75rem;
+  border: 1.5px solid rgba(76, 175, 80, 0.4);
+  box-shadow: 0 15px 35px rgba(27, 94, 32, 0.12), inset 0 0 25px rgba(255, 255, 255, 0.8);
+}
+
+/* Theme Characteristic: Monochrome (Studio Print Sharp Corners) */
+[data-theme="monochrome"] .fluost-box {
+  border-radius: 0.5rem;
+  border: 2px solid #000000;
+  box-shadow: 6px 6px 0px #000000;
+}
+
+[data-theme="monochrome"] .fluost-box:hover {
+  box-shadow: 10px 10px 0px #000000;
+  transform: translate(-2px, -2px);
+}
+
+/* Theme Characteristic: Sunset (Warm Crimson Gradient Glow) */
+[data-theme="sunset"] .fluost-box {
+  border-radius: 2rem;
+  border: 1.5px solid rgba(255, 82, 82, 0.4);
+  box-shadow: 0 20px 45px rgba(136, 14, 79, 0.15), inset 0 0 25px rgba(255, 152, 0, 0.15);
 }
 
 /* Organic Sand Corner Texture */
@@ -427,6 +499,10 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--ice-border); border-radius: 10px; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--ice-border); border-radius: 10px; }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: var(--ice-border) transparent; }
 
 
 
