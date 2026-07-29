@@ -44,8 +44,14 @@ export const EnGrid: React.FC<EnGridProps> = ({ onShowModal }) => {
   const [selectedPiece, setSelectedPiece] = useState<GridPiece | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [gridGap, setGridGap] = useState<'sm' | 'none' | 'lg'>('sm');
+  const [operationCompleted, setOperationCompleted] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const triggerSuccessFeedback = () => {
+    setOperationCompleted(true);
+    setTimeout(() => setOperationCompleted(false), 900);
+  };
 
   // Load default image on mount
   useEffect(() => {
@@ -137,6 +143,7 @@ export const EnGrid: React.FC<EnGridProps> = ({ onShowModal }) => {
       reader.onload = (event) => {
         if (event.target?.result) {
           loadImage(event.target.result as string);
+          triggerSuccessFeedback();
           onShowModal('Visual Diterima', 'Foto berhasil dimuat. Atur posisi dan eksekusi pemotongan EnGrid!');
         }
       };
@@ -217,6 +224,7 @@ export const EnGrid: React.FC<EnGridProps> = ({ onShowModal }) => {
   const setPresetDimensions = (c: number, r: number) => {
     setCols(c);
     setRows(r);
+    triggerSuccessFeedback();
   };
 
   // Batch ZIP Download using JSZip
@@ -270,6 +278,7 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
       link.download = `fluost_grid_${cols}x${rows}_pack.zip`;
       link.click();
 
+      triggerSuccessFeedback();
       onShowModal('Unduhan Paket Berhasil', `Paket ZIP berisi ${gridPieces.length} gambar dan panduan upload Instagram berhasil diunduh.`);
     } catch (err: any) {
       console.error(err);
@@ -304,6 +313,7 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
       link.download = `fluost_carousel_${cols}x${rows}_kit.zip`;
       link.click();
 
+      triggerSuccessFeedback();
       onShowModal(
         'Carousel Kit Berhasil Diunduh',
         `Paket Carousel IG berisi ${sortedSlides.length} slide berurutan dari kiri ke kanan siap diunggah sebagai Multiple Photos Carousel.`
@@ -324,6 +334,7 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
     link.href = dataUrl;
     link.download = `fluost_grid_tile_${piece.id}.jpg`;
     link.click();
+    triggerSuccessFeedback();
   };
 
   return (
@@ -364,7 +375,7 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
         
         {/* Left Controls & Cropper Panel (5 cols) */}
         <div className="lg:col-span-5 space-y-5">
-          <div className="fluost-box p-4 sm:p-6 md:p-8">
+          <div className={`fluost-box p-4 sm:p-6 md:p-8 transition-all ${operationCompleted ? 'operation-completed' : ''} ${isDragging ? 'is-dragging' : ''}`}>
             <div className="fluost-fluid-bg"></div>
             <div className="fluost-sand-corner"></div>
             
@@ -385,7 +396,11 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
                   onTouchStart={handleMouseDown}
                   onTouchMove={handleMouseMove}
                   onTouchEnd={handleMouseUp}
-                  className="relative aspect-square w-full rounded-3xl overflow-hidden border-2 border-dashed border-[var(--ice-border)] bg-black/20 hover:border-[var(--fluid-2)] transition-colors cursor-grab active:cursor-grabbing group shadow-inner touch-none select-none"
+                  className={`relative aspect-square w-full rounded-3xl overflow-hidden border-2 border-dashed transition-all duration-300 cursor-grab active:cursor-grabbing group shadow-inner touch-none select-none ${
+                    isDragging 
+                      ? 'border-[var(--fluid-2)] shadow-[0_0_35px_var(--accent-glow)] scale-[1.01] bg-black/40' 
+                      : 'border-[var(--ice-border)] hover:border-[var(--fluid-2)] bg-black/20'
+                  }`}
                 >
                   <input 
                     type="file" 
@@ -597,7 +612,7 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
 
         {/* Right Panel: Instagram Live Simulator (7 cols) */}
         <div className="lg:col-span-7">
-          <div className="fluost-box p-4 sm:p-6 md:p-8 h-full flex flex-col justify-between">
+          <div className={`fluost-box p-4 sm:p-6 md:p-8 h-full flex flex-col justify-between transition-all ${operationCompleted ? 'operation-completed' : ''}`}>
             <div className="fluost-fluid-bg"></div>
             <div className="fluost-sand-corner"></div>
 
@@ -683,9 +698,15 @@ Dibuat dengan Fluost - Instagram Content & Grid Studio.
                         key={piece.id}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3, delay: idx * 0.03 }}
+                        whileHover={{ scale: 1.05, zIndex: 30 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ 
+                          opacity: { duration: 0.25 },
+                          scale: { type: 'spring', stiffness: 450, damping: 24 },
+                          delay: idx * 0.02
+                        }}
                         onClick={() => setSelectedPiece(piece)}
-                        className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer border border-white/10 hover:border-[var(--fluid-2)] shadow-md transition-all hover:scale-[1.02] hover:z-20"
+                        className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer border border-white/10 hover:border-[var(--fluid-2)] shadow-md transition-shadow hover:shadow-[0_0_20px_var(--accent-glow)]"
                       >
                         <img 
                           src={imageSrc} 

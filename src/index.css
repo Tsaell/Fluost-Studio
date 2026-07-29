@@ -127,24 +127,53 @@ body {
   backface-visibility: hidden;
 }
 
-/* Bento Grid Box Base Styling */
+/* Bento Grid Box Base Styling with Spring Physics & GPU Acceleration */
 .fluost-box {
   position: relative;
   background: var(--card-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: 1.75rem;
   border: 1px solid var(--ice-border);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.25), inset 0 0 20px rgba(255, 255, 255, 0.05);
   overflow: hidden;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, box-shadow, border-radius;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, border-radius 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  will-change: transform, box-shadow, border-color;
   transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 .fluost-box:hover {
   border-color: rgba(61, 90, 254, 0.6);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-glow);
+  transform: translate3d(0, -3px, 0);
+}
+
+.fluost-box:active, .fluost-box.is-dragging {
+  transform: scale(0.985) translate3d(0, 1px, 0);
+  box-shadow: 0 10px 25px -8px rgba(0, 0, 0, 0.5), 0 0 25px var(--accent-glow);
+  border-color: var(--fluid-2);
+}
+
+.fluost-box.operation-completed {
+  animation: springSuccessPulse 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes springSuccessPulse {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.022) translate3d(0, -4px, 0);
+    box-shadow: 0 30px 60px -10px var(--accent-glow), 0 0 40px var(--fluid-2);
+    border-color: var(--fluid-2);
+  }
+  70% {
+    transform: scale(0.995);
+  }
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
 }
 
 /* Theme Characteristic: Blueen (Electric Cobalt Aurora & Dual-Layer Glass) */
